@@ -1,0 +1,144 @@
+%TITLE Ch4: Single Cycle Processor (nanoLADA)
+%CODE S
+%REVIEW
+- **Design steps:** (1) analyze ISA → RTL (2) select components (3) assemble datapath (4) analyze control points (5) assemble control logic
+- **Format:** R = op 6 · rs 5 · rt 5 · rd 5 · reserved 11 · I = op 6 · rs 5 · rt 5 · **imm 16** · J = op 6 · **addr 26**
+- **RTL:** ORI R[rt] ← R[rs] OR zero_ext(imm) · ORUI ... OR zero_pad(imm) · ADD R[rd] ← R[rs] + R[rt] · LW R[rt] ← MEM[R[rs] + sign_ext(imm)] · SW MEM[...] ← R[rt] · BEQ PC ← PC + 4 + sign_ext(imm) × 4 · JMP PC ← addr × 4
+- **Extender:** sign extend (LW/SW/BEQ) · zero extend 0x0000_imm (ORI) · zero pad imm_0000 (ORUI)
+- **Register file:** 32 × 32 bits, อ่าน 2 port, เขียน 1 port · PC + 4 ใช้ adder 30 bits ได้ (2 บิตล่างเป็น 0)
+
+| Instr | sel_pc | sel_addpc | sel_wr | sel_b | sel_data | reg_wr | mem_wr | alu_ops |
+|---|---|---|---|---|---|---|---|---|
+| ORI/ORUI | 0 | 0 | 1 (rt) | 1 (imm) | 0 | 1 | 0 | 01 |
+| ADD | 0 | 0 | 0 (rd) | 0 (reg) | 0 | 1 | 0 | 00 |
+| LW | 0 | 0 | 1 | 1 | 1 (mem) | 1 | 0 | 00 |
+| SW | 0 | 0 | x | 1 | x | 0 | 1 | 00 |
+| BEQ | 0 | zero | x | 0 | x | 0 | 0 | 10 |
+| JMP | 1 | x | x | x | x | 0 | 0 | xx |
+
+- **Critical path (LW):** PC 10 + IMem 40 + Control 40 + Reg 20 + MUX 10 + ALU 60 + DMem 40 + MUX 10 = **230 ns** → CPI = 1 แต่ทุกคำสั่งต้องใช้ 230 ns
+%ENDREVIEW
+%PART ก. ISA และ Components
+%MC
+ขั้นตอนแรกของการออกแบบ processor ตามสไลด์คือ
+a) ประกอบ control logic
+b) เลือก components
+c) วิเคราะห์ ISA โดยเขียนแต่ละคำสั่งเป็น RTL
+d) หา critical path
+=c
+ต้องรู้ว่าแต่ละคำสั่งทำอะไรก่อน จึงจะรู้ว่า datapath ต้องมีอะไร
+%MC
+ใน nanoLADA คำสั่ง I-type มี immediate กี่บิต และ J-type มี address กี่บิต
+a) 16 และ 26
+b) 16 และ 32
+c) 11 และ 26
+d) 5 และ 16
+=a
+I = 6 + 5 + 5 + 16 และ J = 6 + 26
+%MC
+Register file ของ nanoLADA มีกี่ port
+a) อ่าน 1, เขียน 1
+b) อ่าน 2, เขียน 2
+c) อ่าน 2, เขียน 1
+d) อ่าน 3, เขียน 1
+=c
+มี write port เดียว จึงเกิด structural hazard ใน pipeline ได้ (Ch6)
+%MC
+คำสั่งใดใช้ extender แบบ zero extend
+a) ORI
+b) ORUI
+c) LW
+d) BEQ
+=a
+ORUI ใช้ zero pad และ LW/BEQ ใช้ sign extend
+%MC
+หลังรัน `ORUI r1, r0, #0xBEEF` ค่าของ r1 คือ
+a) 0x0000BEEF
+b) 0xFFFFBEEF
+c) 0xBEEF0000
+d) 0xBEEFBEEF
+=c
+zero pad ให้ imm ไปอยู่ 16 บิตบน (a = zero extend และ b = sign extend)
+%MC
+ทำไม adder สำหรับ PC + 4 ใช้แค่ 30 bits ก็พอ
+a) เพราะ PC มี 30 bits
+b) เพราะ 2 บิตล่างของ PC เป็น 0 เสมอ (word aligned) จึงบวก 1 ที่ PC[31:2]
+c) เพราะ memory มีขนาด 1 GB
+d) เพราะ JMP ใช้ 26 bits
+=b
+PC + 4 = {PC[31:2] + 1, 2'b00}
+%PART ข. Control Signals
+%MC
+ค่า control ของคำสั่ง ADD ข้อใดถูก
+a) sel_wr = 1 (rt), sel_b = 1 (imm)
+b) sel_wr = 0 (rd), sel_b = 0 (R[rt])
+c) sel_data = 1 (memory)
+d) mem_wr = 1
+=b
+R-type เขียนลง rd และใช้ register เป็น operand B
+%MC
+ค่า control ของคำสั่ง LW ข้อใดถูก
+a) sel_b = 1, sel_data = 1, reg_wr = 1
+b) sel_b = 0, sel_data = 0, reg_wr = 1
+c) sel_b = 1, sel_data = x, mem_wr = 1
+d) sel_pc = 1, reg_wr = 0
+=a
+b = ADD, c = SW, d = JMP
+%MC
+คำสั่งใดมี reg_wr = 0 และ mem_wr = 1
+a) LW
+b) SW
+c) BEQ
+d) ORI
+=b
+SW เป็นคำสั่งเดียวที่เขียน memory
+%MC
+ค่า control ของคำสั่ง BEQ ข้อใดถูก
+a) alu_ops = 10 (SUB), sel_addpc = zero, reg_wr = 0
+b) alu_ops = 00, reg_wr = 1
+c) sel_pc = 1, mem_wr = 1
+d) sel_data = 1, reg_wr = 1
+=a
+ใช้ SUB แล้วดู zero flag เพื่อเลือก PC
+%MC
+`BEQ r1, r2, imm` อยู่ที่ PC = 0x0040, imm = −3 และ R[r1] = R[r2] ค่า PC ถัดไปคือ
+a) 0x0034
+b) 0x0038
+c) 0x003D
+d) 0x0044
+=b
+0x44 + (−3 × 4) = 0x44 − 0xC = 0x38 (a ลืมบวก 4 และ c ลืมคูณ 4)
+%MC
+`JMP` มี address field = 0x40 ค่า PC ถัดไปคือ
+a) 0x40
+b) 0x44
+c) 0x100
+d) 0x104
+=c
+PC ← addr × 4 (JMP ไม่ได้เป็น PC-relative)
+%PART ค. Critical Path
+%MC
+คำสั่งใดกำหนด critical path ของ single-cycle nanoLADA และ clock สูงสุดประมาณเท่าใด
+a) ADD, 5.3 MHz
+b) LW, 4.35 MHz
+c) BEQ, 230 MHz
+d) JMP, 43.5 MHz
+=b
+LW ใช้ทุกส่วนรวม 230 ns → 1/230 ns ≈ 4.35 MHz
+%PART ง. ตอบสั้น
+%SA
+ด้วย delay ตามสไลด์ คำสั่ง ADD ใช้เวลาจริงเท่าใด และ clock ของ single cycle ต้องตั้งเป็นเท่าใด
+=ADD = 190 ns, clock = 230 ns
+10 + 40 + 40 + 20 + 10 + 60 + 10 = 190 (ไม่ผ่าน data memory) แต่ clock ต้องรอ LW → เสียเวลาเปล่า 40 ns ต่อ ADD
+%SA
+(Exercise ในสไลด์) benchmark 2 ล้านคำสั่ง บน single cycle ที่มี critical path 230 ns ใช้ CPU time เท่าใด
+=0.46 s
+2 × 10⁶ × 1 × 230 ns
+%SA
+เขียน control signals ของ ORI ทั้งแถว (sel_pc, sel_addpc, sel_wr, sel_b, sel_data, reg_wr, mem_wr, alu_ops)
+=0, 0, 1, 1, 0, 1, 0, 01
+เขียนลง rt (sel_wr = 1), ใช้ imm (sel_b = 1), เขียนผล ALU (sel_data = 0), alu_ops = OR
+%SA
+จะสร้างค่าคงที่ 0x12345678 ใน r1 ด้วยคำสั่ง nanoLADA 2 คำสั่งได้อย่างไร
+=`ORUI r1, r0, #0x1234` แล้ว `ORI r1, r1, #0x5678`
+ORUI ใส่ 16 บิตบน (0x12340000) แล้ว ORI ใส่ 16 บิตล่าง

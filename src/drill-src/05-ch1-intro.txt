@@ -1,0 +1,89 @@
+%TITLE Ch1: Introduction (ISA vs Organization)
+%CODE I
+%REVIEW
+- **ISA** = interface/สัญญาระหว่าง software กับ hardware กำหนด instructions, registers, addressing, format และ interrupt/exception ซึ่งเป็น abstraction ได้ 2 มุม: of machine for software และ **of software for hardware** (โปรแกรม 8088 ยังรันบน Core i7 ได้)
+- **Organization** = โครงสร้างภายในที่ implement ISA: ALU, Control Unit, Register, Bus, Memory subsystem, I/O subsystem → **i3/i5/i7 ต่างกันที่ organization** (core, cache, Turbo Boost, Hyper-Threading)
+- **ABI** = ข้อตกลงระดับ binary: calling convention, parameter passing, stack frame, alignment
+- **Abstraction layers:** Application → OS/Compiler → **ISA** → Firmware → Processor/I/O → Datapath & Control → Digital design → Circuit → Layout
+- **Trade-off หลัก:** Cost vs Performance (vs Power) ต้องใช้ modeling + measurement และออกแบบแบบ iterative
+- **Trends:** Moore's Law (transistor ×2 ทุก ~2 ปี/18 เดือน, เป็นข้อสังเกต) · DRAM capacity ×4 ทุก 3 ปี · ราคา DRAM ลด 40% ต่อปี · software ใช้ memory ×2 ต่อปี
+- **IBM 360 (1964)** รวม ISA 7 แบบ ทำให้ software portable
+%ENDREVIEW
+%PART ก. Choice
+%MC
+Intel เพิ่ม L3 cache และ Hyper-Threading โดยโปรแกรมเดิมรันได้ทันทีไม่ต้อง compile ใหม่ นี่คือการเปลี่ยนแปลงในระดับใด
+a) ISA
+b) ABI
+c) Computer Organization
+d) Compiler
+=c
+binary เดิมรันได้แปลว่า ISA ไม่เปลี่ยน ส่วน cache และ HT เป็นโครงสร้างภายใน
+%MC
+การที่ซอฟต์แวร์ของ 8088 ยังรันบน Core i7 ได้ แสดงถึงข้อใด
+a) Moore's Law
+b) ISA เป็น abstraction of software for hardware (backward compatibility)
+c) Core i7 มี organization เหมือน 8088
+d) Amdahl's Law
+=b
+organization ต่างกันมาก มีแค่ ISA ที่ compatible กัน
+%MC
+ข้อใดไม่ใช่ส่วนประกอบของ Computer Organization ตามสไลด์
+a) ALU
+b) Bus
+c) Control Unit
+d) Instruction format
+=d
+instruction format เป็นส่วนของ ISA
+%MC
+ข้อใดไม่ใช่สิ่งที่ ISA กำหนด
+a) รูปแบบของคำสั่ง
+b) addressing modes
+c) จำนวน cache level ใน CPU
+d) วิธีจัดการ interrupt/exception
+=c
+cache เป็น organization ซึ่ง software มองไม่เห็นผ่าน ISA
+%MC
+ในลำดับชั้นของ abstraction ชั้นใดอยู่ระหว่าง compiler/OS กับ hardware
+a) ABI
+b) ISA
+c) Datapath
+d) Layout
+=b
+ISA คือ interface ระหว่าง software กับ hardware
+%MC
+Moore's Law กล่าวว่า
+a) clock rate เพิ่มเป็น 2 เท่าทุก 2 ปี
+b) จำนวน transistor บน IC เพิ่มเป็น 2 เท่าประมาณทุก 2 ปี (18 เดือน)
+c) ราคา DRAM ลดลง 40% ต่อปี
+d) performance เพิ่มตามจำนวน core
+=b
+เป็นข้อสังเกตของ Gordon Moore เรื่องจำนวน transistor ไม่ได้พูดถึง clock หรือ performance
+%MC
+ตามสไลด์ trade-off หลักของการออกแบบคอมพิวเตอร์คือ
+a) Cost vs Performance (vs Power)
+b) Latency vs Bandwidth เท่านั้น
+c) RISC vs CISC
+d) Hardware vs Firmware
+=a
+และต้องใช้ modeling กับ measurement ในการตัดสินใจ
+%MC
+ข้อใดถูกตาม trend ในสไลด์
+a) DRAM ความเร็วเพิ่ม 4 เท่าทุก 3 ปี
+b) DRAM ความจุเพิ่ม 4 เท่าทุก 3 ปี แต่ความเร็วเพิ่มช้า
+c) Disk ความจุคงที่
+d) ราคา DRAM เพิ่มขึ้นทุกปี
+=b
+ความจุโตเร็ว แต่ performance ของ DRAM ดีขึ้นช้า จึงเป็นที่มาของ memory hierarchy (Ch8)
+%PART ข. ตอบสั้น
+%SA
+เติมคำ: ISA เป็น interface ระหว่าง …… กับ …… และในปี 1964 IBM ออก …… ซึ่งรวม instruction set …… แบบเข้าด้วยกัน
+=software, hardware, IBM 360 (System/360), 7
+ก่อนหน้านั้นโปรแกรมไม่ portable
+%SA
+ABI กำหนดอะไรบ้าง และต่างจาก ISA อย่างไร (ตอบสั้น)
+=ABI กำหนดข้อตกลงระดับ binary เช่น calling convention, การส่ง parameter (register/stack), caller/callee-save, stack frame, alignment
+ISA บอกว่ามีคำสั่งอะไร (เช่นมี CALL) ส่วน ABI บอกว่า binary ที่ compile แยกกันต้องใช้คำสั่งเหล่านั้นร่วมกันอย่างไร
+%SA
+ทำไม CPU ต้องมี register (เปรียบเทียบตามสไลด์)
+=เป็นที่เก็บชั่วคราวที่เร็วที่สุด ใกล้ ALU ทำให้ไม่ต้องไป memory ทุกครั้ง
+สไลด์เปรียบกับการบวก 2 + 3 แบบประถม คือ "จำ 2 ไว้ในหัว" แล้วนับต่อ และ register เป็นชั้นบนสุดของ memory hierarchy

@@ -1,0 +1,157 @@
+%TITLE Ch6: Pipelining และ Hazards
+%CODE L
+%REVIEW
+- **Pipelining** เพิ่ม **throughput** ไม่ลด latency · ความเร็วถูกจำกัดด้วย **stage ที่ช้าที่สุด** · stage ไม่สมดุลและเวลา fill/drain ลด speedup
+- **T = (k + n − 1) × T<sub>c</sub>** → speedup ≈ k · laundry 4 ขั้น × 30 นาที: k loads = (k + 3)/2 ชั่วโมง
+- **5 stages:** IF → ID (Reg/Dec) → EX → MEM → WB · register file เขียนครึ่งแรกอ่านครึ่งหลังของ cycle
+- **Structural** (resource ไม่พอ: memory เดียว, WB พร้อมกัน) → เพิ่ม resource (แยก I/D cache), stall/bubble หรือ redesign (ให้ R-type ใช้ 5 stages)
+- **Data:** RAW = Rregs(i) ∩ Wregs(j) (forwarding แก้ได้เกือบหมด) · WAW = Wregs(i) ∩ Wregs(j) · WAR = Wregs(i) ∩ Rregs(j) · ไม่มี RAR · in-order 5-stage มีปัญหาจริงแค่ RAW
+- **Load-use:** ต้อง stall 1 cycle แม้มี forwarding (ถ้าไม่มี forwarding ต้องรอ 3) → compiler reschedule (delayed load) หรือแทรก NOP
+- **Control:** stall (2 cycles), branch prediction (≥ 50%, history ~90%), **branch delay slot** (คำสั่งหลัง branch ทำเสมอ ต้องให้ compiler ช่วย)
+- **Hazard detection:** เทียบ rs/rt กับ register ปลายทางที่รอเขียนใน EX/MEM/WB
+%ENDREVIEW
+%PART ก. แนวคิด Pipeline
+%MC
+Pipelining ปรับปรุงสิ่งใดเป็นหลัก
+a) Latency ของแต่ละคำสั่ง
+b) Instruction count
+c) Throughput
+d) Miss penalty
+=c
+"doesn't help latency of single task, it helps throughput"
+%MC
+5 stages ของ pipeline ตามสไลด์เรียงอย่างไร
+a) IF, EX, ID, MEM, WB
+b) IF, ID, EX, MEM, WB
+c) ID, IF, EX, WB, MEM
+d) IF, ID, MEM, EX, WB
+=b
+Fetch → Reg/Dec → Exec → Mem → Wr
+%MC
+ซักผ้าแบบ pipeline 4 ขั้นที่ใช้เวลา 30, 40, 30, 20 นาที เมื่อ pipeline เต็มแล้วผ้าจะเสร็จ 1 load ทุกกี่นาที
+a) 20
+b) 30
+c) 40
+d) 120
+=c
+ถูกจำกัดด้วย stage ที่ช้าที่สุด (120 คือ latency ของ load เดียว)
+%MC
+Laundry 4 ขั้น ขั้นละ 30 นาที ทำแบบ pipeline 6 loads ใช้เวลาเท่าใด
+a) 3 ชั่วโมง
+b) 4.5 ชั่วโมง
+c) 6 ชั่วโมง
+d) 12 ชั่วโมง
+=b
+2 + 5 × 0.5 = 4.5 h (12 h คือแบบ sequential)
+%PART ข. ชนิดของ Hazard
+%MC
+การแยก instruction cache กับ data cache ช่วยแก้ hazard ชนิดใด
+a) Structural
+b) Data (RAW)
+c) Control
+d) WAW
+=a
+memory เดียวใช้ทั้ง IF และ MEM พร้อมกันไม่ได้
+%MC
+LW (5 stages) ตามด้วย ADD (4 stages ไม่มี MEM) แล้วเขียน register file ใน cycle เดียวกัน คือ hazard ชนิดใด
+a) Structural
+b) Data (RAW)
+c) Control
+d) WAR
+=a
+register file มี write port เดียว (แก้ด้วย bubble หรือให้ R-type ใช้ 5 stages)
+%MC
+โค้ด `a = 7; b = a + 5;` เป็น dependency ชนิดใด
+a) RAW
+b) WAR
+c) WAW
+d) Structural
+=a
+ตัวอย่างตรงจากสไลด์
+%MC
+โค้ด `a = sin(x); x = 10;` (sin ต้องเตรียมนาน) อาจเกิด hazard ชนิดใด
+a) RAW
+b) WAW
+c) WAR
+d) RAR
+=c
+คำสั่งหลังเขียน x ก่อนคำสั่งแรกจะอ่านเสร็จ
+%MC
+ทำไมไม่มี hazard แบบ RAR (Read After Read)
+a) hardware ห้ามอ่านซ้ำ
+b) การอ่านไม่เปลี่ยนค่า ลำดับการอ่านจึงไม่มีผล
+c) compiler ลบให้
+d) เกิดแค่ใน VLIW
+=b
+%PART ค. วิธีแก้ Hazard
+%MC
+5-stage pipeline ที่มี full forwarding ถ้า LW ตามด้วยคำสั่งที่ใช้ค่านั้นทันที ต้อง stall กี่ cycle
+a) 0
+b) 1
+c) 2
+d) 3
+=b
+ข้อมูลพร้อมตอนจบ MEM แต่ต้องใช้ตอนต้น EX ใน cycle เดียวกัน (3 คือกรณีไม่มี forwarding)
+%MC
+ลำดับคำสั่งใดยังต้อง stall แม้มี full forwarding
+a) `ADD r1,..` ตามด้วย `SUB ..,r1,..`
+b) `LW r1,0(r2)` ตามด้วย `ADD r3,r1,r4`
+c) `SW r1,0(r2)` ตามด้วย `ADD r3,r4,r5`
+d) `ADD r1,..` ตามด้วย `SW r1,0(r2)`
+=b
+load-use
+%MC
+วงจร hazard detection เปรียบเทียบอะไร
+a) opcode ของคำสั่งที่ติดกัน
+b) rs/rt ของคำสั่งปัจจุบัน กับ register ปลายทางที่รอเขียนใน EX/MEM/WB
+c) PC ของทุก stage
+d) address ของ memory
+=b
+hazard = (rs = rw_ex AND regW_ex) OR ... ทั้ง rs และ rt
+%MC
+ข้อใดอธิบาย branch delay slot ได้ถูกต้อง
+a) hardware ยกเลิกคำสั่งหลัง branch ทุกครั้ง
+b) คำสั่งถัดจาก branch ทำงานเสมอไม่ว่า branch จะ taken หรือไม่ และต้องให้ compiler หาคำสั่งมาใส่
+c) เป็นการทาย branch ด้วย history
+d) ไม่ต้องอาศัย compiler
+=b
+ถ้าหาคำสั่งอิสระไม่ได้ต้องใส่ NOP
+%MC
+ตามสไลด์ branch prediction แบบใช้ branch history ทายถูกประมาณเท่าใด
+a) 50%
+b) 75%
+c) 90%
+d) 100%
+=c
+ทายแบบคงที่ถูกอย่างน้อยประมาณ 50%
+%PART ง. ตอบสั้น
+%SA
+5-stage pipeline (full forwarding) cycle time 2 ns รัน 200 คำสั่ง โดย 10% เป็น load-use และไม่มี stall อื่น ใช้เวลาเท่าใด
+=224 cycles = 448 ns
+5 + 199 + 20 = 224 (CPI ที่มีผล ≈ 1.12)
+%SA
+โปรแกรม 7 คำสั่งของ nanoLADA (LW, LW, ADD, ORI, SW, BEQ, JMP) จงหาเวลาบน single cycle 230 ns, multi-cycle 50 ns และ ideal pipeline 5 stages 50 ns
+=single 1610 ns, multi 1400 ns (28 cycles), pipeline 550 ns
+pipeline = (5 + 7 − 1) × 50 → เร็วกว่า single 2.93 เท่า (ไม่ถึง 5 เพราะ n น้อย)
+%SA
+ระบุ dependency ทั้งหมดและจำนวน stall (full forwarding): `1: LW r1,0(r2)` · `2: ADD r3,r1,r1` · `3: SW r3,4(r2)` · `4: ADD r1,r4,r5`
+=RAW r1 (1→2), RAW r3 (2→3), WAR r1 (2→4), WAW r1 (1→4) · stall 1 cycle
+เฉพาะ load-use (1→2) ที่ต้อง stall ส่วน WAR/WAW ไม่เป็นปัญหาใน in-order 5-stage → รวม 9 cycles
+%SA
+`1: LW r1,0(r2)` · `2: ADD r3,r1,r4` · `3: LW r6,4(r2)` · `4: SUB r7,r6,r3` · `5: ORI r8,r9,#5` (full forwarding) ใช้กี่ cycle และจะ reschedule ให้ไม่มี stall ได้อย่างไร
+=11 cycles → reschedule: LW r1; LW r6; ADD r3; ORI r8; SUB r7 = 9 cycles
+- dependency: RAW r1 (1→2), RAW r6 (3→4), RAW r3 (2→4) ไม่มี WAR/WAW
+- load-use 2 จุด จุดละ 1 stall → 9 + 2 = 11
+- reschedule แล้วไม่สร้าง dependency ใหม่
+%SA
+`1: LW r2,0(r1)` · `2: ADD r3,r2,r4` · `3: SUB r2,r5,r6` · `4: SW r3,4(r1)` ทำไมย้าย SUB มาคั่นระหว่าง 1 กับ 2 เพื่อลด stall ไม่ได้ และต้องทำอย่างไร
+=ละเมิด WAR (2→3) และ WAW (1→3) บน r2 → ต้อง rename ปลายทางของ SUB (เช่น r7) ก่อนจึงจะย้ายได้
+ถ้าย้ายตรง ๆ ADD จะอ่าน r2 ของ SUB แทนค่าที่ load มา
+%SA
+(Exercise ในสไลด์) `MOV R1,F0` (ช้า) · `LI F0,#20` · `LD R2,R1,0` · `ADDI R1,R1,#1` มี hazard อะไรบ้าง
+=WAR F0 (MOV/LI), RAW R1 (MOV→LD, MOV→ADDI), WAW R1 (MOV/ADDI), WAR R1 (LD/ADDI)
+MOV ใช้เวลานาน คำสั่งหลังจึงอาจเขียนก่อนที่ MOV จะอ่านหรือเขียนเสร็จ
+%SA
+(Exercise ในสไลด์) reschedule loop นี้ให้ไม่มี stall โดยใช้ delayed load และ delayed branch: `LD F0,0(R1); ADD F4,F0,F2; SD 0(R1),F4; LD F1,8(R1); ADD F5,F1,F2; SD 8(R1),F5; SUB R1,R1,#16; BNEZ R1,Loop`
+=LD F0; LD F1; ADD F4; ADD F5; SD 0(R1),F4; SUB R1,R1,#16; BNEZ; SD −8(R1),F5 (อยู่ใน delay slot)
+SD ตัวสุดท้ายย้ายมาหลัง SUB จึงต้องปรับ offset จาก 8 เป็น 8 − 16 = −8

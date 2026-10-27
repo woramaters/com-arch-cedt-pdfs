@@ -1,0 +1,161 @@
+%TITLE Ch3 (1): ISA Types, CISC/RISC, Format และ Compiler
+%CODE A
+%REVIEW
+| ISA (x = (a·b) + (a − (b·c))) | #address | #คำสั่ง | จุดเด่น | จุดด้อย |
+|---|---|---|---|---|
+| Accumulator | 1 | 11 | HW น้อยที่สุด | ACC เป็น bottleneck, memory traffic สูง |
+| Stack | 0 | 10 | code density ดี, compiler ง่าย | data ไม่อยู่ top เสมอ, optimize ยาก |
+| Memory-Memory | 2–3 | 4 (3-op) / 7 (2-op) | คำสั่งน้อยที่สุด | memory traffic สูงมาก, CPI แปรผัน |
+| Register-Memory (x86) | 2 | 10 | ไม่ต้อง load ก่อน | ไม่ orthogonal, CPI แปรผัน |
+| **Load-Store (RISC)** | 3 | 8 | fixed length, CPI ใกล้กัน, **pipeline ง่าย** | IC สูง, ต้องพึ่ง compiler |
+
+- **ISA ที่ดี:** compatibility, generality, **orthogonality** (ทุก mode ใช้กับทุก type/instruction ได้), regularity, ease of compilation/implementation
+- **CISC vs RISC:** เมื่อมี ILP RISC ชนะ · **Post-RISC:** x86 แปลเป็น micro-ops ภายใน · ARM = Acorn RISC Machine
+- **Format:** variable length (code เล็ก decode ยาก) vs **fixed length (ชนะในแง่ performance)** · MIPS code ใหญ่ 2 เท่าของ VAX แต่ CPI เป็น 1/6 → เร็วกว่า 3 เท่า
+- **Compiler optimization:** inlining · local: CSE, constant propagation · global: copy propagation, **code motion** · machine-dependent: **strength reduction**, pipeline scheduling
+- **Basic block** = ไม่มี branch เข้าออกตรงกลาง · **alias (pointer)** ทำให้เก็บตัวแปรใน register ไม่ได้ · bug ส่วนใหญ่ของ compiler มาจาก optimization · **XOR R1,R1,R1** ใช้ clear register
+%ENDREVIEW
+%PART ก. ISA 5 แบบ
+%MC
+สถาปัตยกรรมแบบใดเป็น "0-address" (operand อยู่ที่ top of stack โดยปริยาย)
+a) Accumulator
+b) Stack
+c) Register-Memory
+d) Load-Store
+=b
+Accumulator = 1, Register-Memory = 2, Load-Store = 3 address
+%MC
+สถาปัตยกรรมใดคำนวณตัวอย่างในสไลด์ได้ด้วยคำสั่งน้อยที่สุด (4 คำสั่ง)
+a) Memory-Memory (3 operands)
+b) Load-Store
+c) Stack
+d) Accumulator
+=a
+แลกกับ memory traffic สูงมาก
+%MC
+สถาปัตยกรรมใดเหมาะกับ pipelining ที่สุด
+a) Accumulator
+b) Stack
+c) Memory-Memory
+d) Register-Register (Load-Store)
+=d
+fixed-length และ CPI ใกล้เคียงกันทุกคำสั่ง
+%MC
+ข้อใดเป็นข้อเสียของ Stack architecture
+a) code density แย่
+b) ข้อมูลที่ต้องการไม่ได้อยู่ top of stack เสมอ
+c) ต้องใช้ hardware มาก
+d) compiler เขียนยาก
+=b
+a, c, d เป็นข้อดีของ stack (เขียนกลับกัน)
+%MC
+ข้อใดเป็นข้อเสียของ Accumulator architecture
+a) ต้องใช้ register จำนวนมาก
+b) decode ซับซ้อน
+c) code density แย่ที่สุด
+d) memory traffic สูง และ accumulator เป็น bottleneck
+=d
+มี register เดียว จึงต้องเก็บค่ากลางลง memory บ่อย
+%MC
+ข้อเสียของ Register-Memory architecture ตามสไลด์คือ
+a) ต้อง load ทุก operand ก่อนใช้
+b) poor orthogonality (operand สองตัวมีสิทธิ์ไม่เท่ากัน) และ CPI แปรผัน
+c) ไม่มี register เลย
+d) ใช้ได้แค่ 0-address
+=b
+operand ตัวหนึ่งอยู่ใน memory ได้ แต่อีกตัวต้องเป็น register
+%MC
+Orthogonality ของ ISA หมายถึงข้อใด
+a) คำสั่งทุกตัวยาวเท่ากัน
+b) มี special case น้อย ใช้ทุก addressing mode กับทุก data type/instruction ได้
+c) มี register 32 ตัว
+d) ไม่มี immediate
+=b
+เป็นคุณสมบัติที่ช่วย compiler writer
+%PART ข. CISC/RISC และ Instruction Format
+%MC
+ข้อใดอธิบายยุค Post-RISC ได้ถูกต้อง
+a) x86 แปลคำสั่ง CISC เป็นคำสั่งภายในคล้าย RISC (micro-ops) ก่อนทำ parallelism
+b) RISC ถูกเลิกใช้แล้ว
+c) ARM กลายเป็น CISC
+d) x86 เปลี่ยนเป็น fixed-length
+=a
+เส้นแบ่งระหว่าง CISC กับ RISC จึงไม่ชัดแล้ว
+%MC
+ARM ย่อมาจาก
+a) Advanced Register Machine
+b) Acorn RISC Machine
+c) Accumulator RISC Model
+d) Array Register Memory
+=b
+เด่นเรื่องประหยัดพลังงาน
+%MC
+ทำไม fixed-length instruction จึงชนะในแง่ performance
+a) code เล็กที่สุดเสมอ
+b) decode ง่ายและทำ pipeline ได้ง่าย
+c) มี addressing mode มากที่สุด
+d) ไม่ต้องมี opcode
+=b
+แลกกับ code ที่ใหญ่ขึ้น
+%MC
+code ของ MIPS ใหญ่ประมาณ 2 เท่าของ VAX แต่ CPI เป็น 1/6 ของ VAX ถ้า clock เท่ากัน ข้อใดถูก
+a) VAX เร็วกว่า 2 เท่า
+b) MIPS เร็วกว่าประมาณ 3 เท่า
+c) MIPS เร็วกว่า 6 เท่า
+d) เร็วเท่ากัน
+=b
+T<sub>MIPS</sub>/T<sub>VAX</sub> = 2 × 1/6 = 1/3
+%PART ค. Compiler
+%MC
+วิธี clear register ที่สไลด์แนะนำสำหรับ architecture ส่วนใหญ่คือ
+a) `CLR R1`
+b) `MOV R1, 0`
+c) `SUB R1,R1,R1`
+d) `XOR R1,R1,R1`
+=d
+ไม่ต้องใช้ immediate encode สั้น และ HW รู้จัก idiom นี้
+%MC
+การย้าย `hs = 3600;` ที่เป็นค่าคงที่ออกไปนอก loop คือ optimization แบบใด
+a) Strength reduction
+b) Code motion
+c) Procedure inlining
+d) Pipeline scheduling
+=b
+ย้ายโค้ด loop-invariant ออกนอก loop (global optimization)
+%MC
+เปลี่ยน `x * 8` เป็น `x << 3` คือ optimization แบบใด
+a) Code motion
+b) Strength reduction
+c) Common subexpression elimination
+d) Inlining
+=b
+ใช้ operation ที่ถูกกว่า (machine-dependent)
+%MC
+Basic block คืออะไร
+a) ลำดับคำสั่งที่ไม่มี branch เข้าหรือออกตรงกลาง
+b) block ของ cache
+c) ฟังก์ชันหนึ่งฟังก์ชัน
+d) หน่วยของ page
+=a
+local optimization ทำภายใน basic block และ basic block ใหญ่ทำให้มี ILP มาก (Ch7)
+%MC
+อะไรทำให้ compiler เก็บตัวแปรไว้ใน register ไม่ได้ ตามสไลด์
+a) Loop
+b) Alias (pointer)
+c) Constant
+d) Comment
+=b
+compiler ไม่รู้ว่า pointer จะแก้ตัวแปรไหน จึงต้องอ่านเขียน memory จริง
+%PART ง. ตอบสั้น
+%SA
+เติมจำนวนคำสั่งที่ใช้คำนวณ x = (a·b) + (a − (b·c)) ของแต่ละ ISA: Accumulator ……, Stack ……, Mem-Mem 3-op ……, Reg-Mem ……, Load-Store ……
+=11, 10, 4, 10, 8
+Mem-Mem แบบ 2-operand ใช้ 7 คำสั่ง
+%SA
+ใช้ copy propagation กับ `A=B+C; B=A+C; D=A-B;` จนไม่มี operand ที่เป็นค่าที่คำนวณได้ แล้วสรุปว่าได้บทเรียนอะไร
+=B = B+C+C, D = (B+C) − (B+C+C) = −C → บางคำสั่งงานเพิ่ม บางคำสั่งงานลด
+optimization ไม่ได้ลดงานเสมอ compiler ต้องชั่งน้ำหนัก ("locally simple, globally complex")
+%SA
+optimize loop นี้ `for(x=0;x<=100;x++){ hs=3600; ds=hs*24; h=a[x]/hs; d=a[x]/ds; }`
+=ย้าย `hs=3600; ds=86400;` ออกนอก loop (code motion + constant folding)
+ใน loop เหลือแค่ `h=a[x]/hs; d=a[x]/ds;`

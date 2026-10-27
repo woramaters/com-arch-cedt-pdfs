@@ -1,0 +1,170 @@
+%TITLE Ch8 (1): Memory Hierarchy และ Cache
+%CODE K
+%REVIEW
+- **Hierarchy:** register (SW จัดการ) → cache (HW) → memory → disk (HW + OS) · ระดับใกล้ CPU จะเล็ก เร็ว และแพง
+- **DRAM** = capacitor, ถูก, ช้า, ต้อง refresh → main memory · **SRAM** = transistor, เร็ว, แพง → cache
+- **Locality:** temporal (ใช้ซ้ำเร็ว ๆ นี้) · spatial (ใช้ข้อมูลที่อยู่ใกล้กัน)
+
+::: formula
+offset = log₂(block B) · #sets = cache size / (block × ways) · index = log₂(#sets) · tag = ที่เหลือ
+
+ฐานสิบ (direct): index = (addr mod cache size) div block · tag = addr div cache size
+
+AMAT = Hit time + Miss rate × Miss penalty · 2 ระดับ: H₁ + MR₁ × (H₂ + MR₂ × MP₂)
+
+CPI = CPI<sub>ideal</sub> + Σ(accesses/instr × miss rate × penalty)
+:::
+
+- **3C:** compulsory (ครั้งแรก) · capacity (cache เล็กเกิน, ping-pong) · conflict (ยังมีที่ว่างแต่ชนกัน → แก้ด้วย associativity) · fully associative ไม่มี conflict miss
+- **Block ใหญ่:** spatial ดีขึ้น แต่ miss penalty สูงขึ้น และถ้าใหญ่เกินไป miss rate กลับเพิ่ม · **associativity สูง:** conflict ลดลง แต่ hit time เพิ่ม (n comparators)
+- **Replacement:** LRU, round robin, FIFO, random · direct-mapped ไม่ต้องมี replacement policy
+- **Write-back** (dirty bit, เร็ว, incoherent ใน multiprocessor) vs **write-through** (ช้า, เหมาะกับ multiprocessor) · **write buffer** saturate → แก้ด้วย **L2**
+- **Software:** C เป็น row-major → วน r ข้างนอก c ข้างใน · array of struct ช่วยลด conflict miss
+%ENDREVIEW
+%PART ก. แนวคิด
+%MC
+ข้อใดถูกต้องเกี่ยวกับ DRAM และ SRAM
+a) DRAM เร็วกว่า จึงใช้เป็น cache
+b) SRAM เร็วและแพง จึงใช้เป็น cache ส่วน DRAM ถูกและหนาแน่น จึงใช้เป็น main memory
+c) SRAM ต้อง refresh
+d) DRAM ทำจาก flip-flop
+=b
+DRAM ใช้ capacitor และต้อง refresh
+%MC
+ข้อใดเป็นตัวอย่างของ temporal locality
+a) อ่าน array เรียงไปเรื่อย ๆ
+b) ตัวแปร i ใน loop ถูกใช้ซ้ำทุกรอบ
+c) คำสั่งถูก fetch เรียงตาม address
+d) block size 64 bytes
+=b
+a และ c เป็น spatial locality
+%MC
+"Ping-pong effect" (cache มี 1 line ทุก address ใหม่ miss หมด) เป็นกรณีสุดโต่งของ miss ชนิดใด
+a) Compulsory
+b) Capacity
+c) Conflict
+d) Coherence
+=b
+สไลด์เรียกว่า extreme capacity miss
+%MC
+Fully associative cache ยังคงมี miss ชนิดใดบ้าง
+a) Conflict อย่างเดียว
+b) Compulsory และ Capacity
+c) Compulsory, Capacity และ Conflict
+d) ไม่มี miss เลย
+=b
+วางได้ทุกที่จึงไม่มี conflict miss
+%MC
+การเพิ่ม associativity จาก direct-mapped เป็น 4-way (ขนาดเท่าเดิม) มีผลข้อใดมากที่สุด
+a) ลด compulsory miss
+b) ลด conflict miss แต่ hit time อาจเพิ่มขึ้น
+c) capacity miss เป็นศูนย์
+d) ไม่ต้องมี tag
+=b
+ต้องมี 4 comparators และ MUX ใหญ่ขึ้น
+%MC
+ถ้า cache size คงที่แต่เพิ่ม block size มากเกินไป จะเกิดอะไรขึ้น
+a) block น้อยลง temporal locality แย่ลง miss rate กลับเพิ่ม และ miss penalty สูงขึ้น
+b) miss rate ลดลงเสมอ
+c) hit time เป็นศูนย์
+d) ไม่มี compulsory miss อีกต่อไป
+=a
+optimal block size ต้องหาจาก benchmark
+%MC
+ทำไม direct-mapped cache จึงไม่ต้องมี replacement algorithm
+a) เพราะไม่เคย miss
+b) เพราะ block วางได้ที่เดียว จึงต้องแทนที่ตัวเดิมเสมอ
+c) เพราะใช้ LRU อัตโนมัติ
+d) เพราะ OS เป็นผู้เลือก
+=b
+ไม่มีทางเลือกให้ตัดสินใจ
+%MC
+Cache แบบ write-back ต้องมีบิตใดเพิ่มในแต่ละ line
+a) Parity bit
+b) Dirty bit
+c) Sign bit
+d) Carry bit
+=b
+บอกว่าต้องเขียนกลับ memory ตอน replace หรือไม่
+%MC
+นโยบายการเขียนแบบใดเหมาะกับระบบ multiprocessor มากกว่าตามสไลด์
+a) Write-back เพราะเร็วกว่า
+b) Write-through เพราะ memory เป็นปัจจุบันเสมอ
+c) ไม่มีความต่าง
+d) Write no-allocate เท่านั้น
+=b
+write-back ทำให้ข้อมูล incoherent ในระบบ multiprocessor
+%MC
+Write buffer saturate เพราะ memory ช้ามาก วิธีแก้ที่สไลด์เสนอคือ
+a) เพิ่มขนาด write buffer ไปเรื่อย ๆ
+b) เพิ่ม L2 cache
+c) ปิด cache
+d) ใช้ direct-mapped
+=b
+สไลด์บอกว่า buffer จะเต็ม "regardless the size"
+%MC
+`int data[1000][1000]` ในภาษา C วนแบบใดเร็วกว่า
+a) r ข้างนอก c ข้างใน (`data[r][c]`)
+b) c ข้างนอก r ข้างใน
+c) เร็วเท่ากัน
+d) ขึ้นกับ OS
+=a
+C เก็บแบบ row-major จึงได้ spatial locality
+%PART ข. Tag, Index, Offset
+%MC
+Direct-mapped cache ขนาด 64 bytes, block 8 bytes, address 300 (ฐานสิบ) อยู่ที่ index ใด
+a) 4
+b) 5
+c) 37
+d) 44
+=b
+(300 mod 64) div 8 = 44 div 8 = 5 (tag = 4)
+%MC
+2-way set associative ขนาด 8 KB, block 32 bytes มีกี่ sets
+a) 64
+b) 128
+c) 256
+d) 512
+=b
+8192 / (32 × 2) (256 คือจำนวน lines)
+%PART ค. ตอบสั้น
+%SA
+(สไลด์) direct-mapped ที่มี Tag [31:10], Index [9:2], Byte offset [1:0] มี block size และ cache size เท่าใด และ address 0x00004098 อยู่ที่ index และ tag ใด
+=block 4 B, cache 1 KB · index = 38, tag = 16
+index = (0x4098 >> 2) AND 0xFF = 0x26 และ tag = 0x4098 >> 10 = 0x10
+%SA
+Direct-mapped 4 KB, block 16 B, address 32 bits จงหา index และ tag ของ 0x00001234
+=index = 35, tag = 1 (offset = 4)
+offset 4 bits, index 8 bits · 0x1234 = 0001 0010 0011 0100 → index = 0x23
+%SA
+Direct-mapped 16 KB, block 32 B: (ก) tag/index/offset กี่บิต (ข) tag/index/offset ของ 0x00012345 (ค) 0x00016345 ชนกับ 0x00012345 ไหม
+=(ก) 18/9/5 (ข) tag 4, index 282, offset 5 (ค) ชน (conflict) เพราะ index เดียวกันแต่ tag = 5
+0x16345 = 0x12345 + 16 KB (ขนาด cache พอดี) ถ้าเป็น 2-way ทั้งสองอยู่ด้วยกันได้
+%SA
+4-way set associative 64 KB, block 64 B, address 32 bits จงหาจำนวนบิตของ tag, index, offset
+=tag 18, index 8, offset 6
+#sets = 65536 / (64 × 4) = 256 (ถ้าลืมหาร ways จะได้ index 10 ซึ่งผิด)
+%SA
+2-way set associative 32 KB, block 32 B จงหาจำนวนบิตของ tag, index, offset และจำนวน comparator
+=tag 18, index 9, offset 5, ใช้ 2 comparators
+#sets = 32768 / 64 = 512
+%SA
+CPI<sub>ideal</sub> = 1, 30% เป็น load/store, I-miss 2%, D-miss 5%, penalty 100 cycles จงหา CPI จริง
+=4.5
+1 + 1 × 0.02 × 100 + 0.3 × 0.05 × 100 = 1 + 2 + 1.5 (ช้ากว่า perfect cache 4.5 เท่า)
+%SA
+CPI<sub>ideal</sub> = 1.2, 25% เป็น load/store, I-miss 1%, D-miss 4%, penalty 80 cycles จงหา CPI จริง
+=2.8
+1.2 + 0.8 + 0.8
+%SA
+L1 hit 1 cycle, miss 4% · L2 hit 12 cycles, local miss 25% · memory 200 cycles จงหา AMAT
+=3.48 cycles
+MP<sub>L1</sub> = 12 + 0.25 × 200 = 62 → 1 + 0.04 × 62 (ถ้าไม่มี L2 จะได้ 9 cycles)
+%SA
+แบบเดิม hit 2 cycles, miss 8%, penalty 50 · แบบ 2-way hit 2.5 cycles, miss 6% แบบใดดีกว่า
+=เดิม 6 cycles, 2-way 5.5 cycles → 2-way ดีกว่า
+ต้องคำนวณ AMAT เพราะ associativity แลก hit time กับ miss rate
+%SA
+(สไลด์) memory op ใช้ 50 cycles, op อื่น 1 cycle และมี memory op 10% CPU รอ memory กี่เปอร์เซ็นต์ของเวลา
+=≈ 85%
+(0.1 × 50) / (0.9 + 5) = 5/5.9 ซึ่งเป็นแรงจูงใจให้ต้องมี cache

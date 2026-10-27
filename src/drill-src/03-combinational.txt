@@ -1,0 +1,97 @@
+%TITLE DL3: Combinational Circuits
+%CODE C
+%REVIEW
+- **Combinational:** output ขึ้นกับ input ปัจจุบันเท่านั้น (ไม่มีหน่วยความจำ) เช่น MUX, decoder, adder, ALU
+- **MUX 2ⁿ-to-1** มี select **n** เส้น ใช้ "เลือก" ข้อมูลทุกจุดใน datapath (sel_b, sel_data, forwarding)
+- **Decoder n-to-2ⁿ:** output เส้นที่ i = minterm m<sub>i</sub> (one-hot) ดังนั้น decoder + OR สร้าง SOP ใดก็ได้ และใช้เลือก register ที่จะเขียน
+- **Half adder:** S = A ⊕ B, C = AB · **Full adder:** S = A ⊕ B ⊕ Cin, Cout = AB + Cin(A ⊕ B)
+- **Ripple-carry** ช้า (delay ∝ n) ส่วน **carry-lookahead** ใช้ g = AB, p = A ⊕ B คำนวณ carry ขนาน เร็วกว่าแต่ใช้ gate มากกว่า
+- **ALU:** การลบ A − B = A + B̄ + 1 และ **zero flag = NOR ของทุกบิตของผล**
+- **ROM** เก็บ truth table ทั้งตาราง · **PLA** มี AND/OR plane ที่ program ได้ทั้งคู่ · **PAL** มี OR plane fixed
+%ENDREVIEW
+%PART ก. แนวคิด
+%MC
+ข้อใดคือนิยามของ combinational circuit
+a) output ขึ้นกับ input ปัจจุบันเท่านั้น
+b) output ขึ้นกับ state ที่จำไว้
+c) ต้องมี clock เสมอ
+d) มี flip-flop อย่างน้อย 1 ตัว
+=a
+b, c, d เป็นลักษณะของ sequential circuit
+%MC
+Multiplexer แบบ 32-to-1 ต้องมี select lines กี่เส้น
+a) 4
+b) 5
+c) 16
+d) 32
+=b
+2⁵ = 32 (ตัวลวง d นับจำนวน data input)
+%MC
+ต้องใช้ MUX แบบ 2-to-1 กี่ตัวจึงจะสร้าง MUX แบบ 8-to-1 ได้
+a) 3
+b) 4
+c) 7
+d) 8
+=c
+ต่อเป็นต้นไม้: 4 + 2 + 1 = 7 (ตัวลวง a คือจำนวน select lines)
+%MC
+Decoder 3-to-8 ได้รับอินพุต ABC = 101 output เส้นใดเป็น 1
+a) Y2
+b) Y3
+c) Y5
+d) Y6
+=c
+101₂ = 5 และ Y5 = m₅ = AB'C
+%MC
+Decoder n-to-2ⁿ ร่วมกับ OR gate สามารถสร้างอะไรได้
+a) เฉพาะฟังก์ชัน XOR
+b) ฟังก์ชัน SOP ใดก็ได้ของ n ตัวแปร
+c) flip-flop
+d) เฉพาะ MUX
+=b
+output แต่ละเส้นของ decoder คือ minterm จึง OR minterm ที่ต้องการเข้าด้วยกันได้
+%MC
+Half adder ให้ output ใด
+a) S = A ⊕ B, C = AB
+b) S = A + B, C = AB
+c) S = AB, C = A ⊕ B
+d) S = A ⊕ B ⊕ Cin, C = AB
+=a
+half adder ไม่มี carry-in (ตัวลวง d ผสม full adder เข้ามา)
+%MC
+ข้อใดถูกเกี่ยวกับ carry-lookahead adder เมื่อเทียบกับ ripple-carry adder
+a) ช้ากว่าแต่ใช้ gate น้อยกว่า
+b) เร็วกว่าแต่ใช้ gate มากกว่า
+c) เร็วกว่าและใช้ gate น้อยกว่า
+d) เหมือนกันทุกประการ
+=b
+คำนวณ carry ทุกบิตขนานกันด้วย generate/propagate ซึ่งเป็น trade-off ระหว่าง area กับ speed
+%MC
+Zero flag ของ ALU สร้างได้จาก gate ใด
+a) AND ของทุกบิตของผล
+b) OR ของทุกบิตของผล
+c) NOR ของทุกบิตของผล
+d) XOR ของทุกบิตของผล
+=c
+เป็น 1 เมื่อทุกบิตเป็น 0 ซึ่ง BEQ ใน nanoLADA ใช้ zero flag หลังทำ SUB
+%MC
+ข้อใดถูกเกี่ยวกับ PLA
+a) AND plane fixed, OR plane program ได้
+b) program ได้ทั้ง AND plane และ OR plane
+c) เก็บ truth table ทุกแถวเหมือน ROM
+d) ใช้ได้เฉพาะวงจร sequential
+=b
+ตัวลวง a คือ PAL กลับด้าน (PAL program ได้แค่ AND plane) และตัวลวง c คือ ROM
+%PART ข. ตอบสั้น
+%SA
+เขียนสมการ Boolean ของ Sum และ Carry-out ของ full adder (อินพุต A, B, Cin)
+=Sum = A ⊕ B ⊕ Cin, Cout = AB + Cin(A ⊕ B)
+Cout เขียนแบบ majority ได้เป็น AB + ACin + BCin
+%SA
+Ripple-carry adder ขนาด 16 bits ถ้า carry ผ่าน full adder แต่ละตัวใช้ 2 gate delays carry ออกจากบิตบนสุดจะช้าที่สุดกี่ gate delays
+=32 gate delays
+carry ต้องไหลผ่านครบ 16 ตัว: 16 × 2 = 32 ซึ่งเป็นเหตุผลที่ต้องมี carry-lookahead
+%SA
+ALU ทำ A − B ด้วย adder ได้อย่างไร
+=A + B̄ + 1: กลับทุกบิตของ B และให้ Cin = 1
+เป็นการบวก −B ในรูป 2's complement จึงใช้ adder ตัวเดียวทำได้ทั้งบวกและลบ

@@ -1,0 +1,107 @@
+%TITLE Ch8 (2): Virtual Memory และ TLB
+%CODE V
+%REVIEW
+- **ประโยชน์ 3 อย่าง:** (1) cost: รันโปรแกรม 4 GB บนเครื่อง 2 GB (ยืม disk, demand load, swap) (2) relocation: แต่ละ process มี address space ของตัวเอง (3) protection
+- **Page** (virtual) / **page frame** (physical) · VA = **VPN** + offset · PA = **PPN** + offset (offset ไม่ถูกแปล)
+- **Page table** map VPN → PPN มี valid bit และ permission · **มีต่อ process** · ขนาด = 2^(VPN bits) × PTE
+- **Page fault** = miss ของ VM จัดการโดย **OS** (HW ไม่รู้จัก file system/swap) · miss penalty มหาศาล → page ใหญ่ (4 KB) และใช้ **write-back เท่านั้น**
+- **TLB** = cache ของ page table entries · เล็ก (128–256 entries) จึงเป็น fully associative · TLB miss มีผลต่อ performance มาก
+- **Overlapped cache & TLB:** ใช้ page offset เป็น index ของ cache พร้อมกับเปิด TLB → ต้องมี **cache size / ways ≤ page size**
+- **Process switch:** flush TLB (หรือใช้ ASID) · page table ไม่ต้องลบ แค่เปลี่ยน page table register · cache แบบ physical ไม่ต้อง flush
+- **Virtually addressed cache:** เร็วแต่มีปัญหา aliasing/shared memory
+%ENDREVIEW
+%PART ก. แนวคิด
+%MC
+ข้อใดไม่ใช่วัตถุประสงค์ของ virtual memory ตามสไลด์
+a) รันโปรแกรมที่ใหญ่กว่า physical memory ได้
+b) แต่ละ process มี address space ของตัวเอง
+c) ป้องกันไม่ให้ process หนึ่งเข้าถึง memory ของอีก process
+d) เพิ่ม hit rate ของ L1 cache
+=d
+a, b, c คือ cost, relocation และ protection
+%MC
+Page fault ถูกจัดการโดยใคร
+a) Cache controller
+b) TLB
+c) Operating system (software)
+d) Compiler
+=c
+hardware ไม่รู้จัก file system หรือ swap
+%MC
+ทำไม virtual memory จึงใช้ write-back เท่านั้น
+a) write-through ไปยังดิสก์ช้าและแพงเกินไป
+b) ดิสก์เขียนข้อมูลไม่ได้
+c) OS ติดตาม dirty page ไม่ได้
+d) TLB บังคับไว้
+=a
+ถ้า write-through ทุกการเขียนต้องไปถึงดิสก์
+%MC
+TLB คืออะไร
+a) cache ของข้อมูล
+b) cache ของ page table entries ที่เพิ่งใช้
+c) ส่วนหนึ่งของ disk
+d) register เก็บ PC
+=b
+ทำให้การแปล VA → PA เร็วพอ ๆ กับการเข้า cache
+%MC
+TLB มักจัดเป็น fully associative เพราะ
+a) ขนาดใหญ่มาก
+b) มีขนาดเล็ก (ประมาณ 128–256 entries) จึงเทียบทุก entry ได้
+c) ไม่มี tag
+d) OS จัดการทั้งหมด
+=b
+เครื่องระดับกลางอาจใช้ small n-way
+%MC
+ข้อใดถูกเกี่ยวกับ page table
+a) มีตารางเดียวใช้ร่วมทั้งระบบ
+b) มีหนึ่งตารางต่อ process และมี page table register ชี้ไปที่ตารางปัจจุบัน
+c) อยู่ใน TLB ทั้งหมด
+d) เก็บข้อมูลของโปรแกรม
+=b
+ตอน process switch จึงแค่เปลี่ยน register นี้
+%MC
+ปัญหาของ cache ที่ใช้ virtual address (ก่อนแปล) คือ
+a) ช้ากว่า physically addressed เสมอ
+b) aliasing: VA ต่างกันจากต่าง process อาจ map ไป PA เดียวกัน (shared memory)
+c) ไม่มี tag
+d) ใช้กับ write-back ไม่ได้
+=b
+และต้องจัดการตอน context switch ด้วย
+%PART ข. คำนวณ
+%MC
+VA 32 bits, page 8 KB, PTE 4 bytes ขนาด page table ต่อ process คือ
+a) 1 MB
+b) 2 MB
+c) 4 MB
+d) 8 MB
+=b
+offset 13 bits → VPN 19 bits → 2¹⁹ × 4 B = 2 MB (4 MB คือกรณี page 4 KB)
+%MC
+page 4 KB และต้องการ L1 cache 16 KB ที่ทำ overlapped access ได้ ต้องใช้ associativity อย่างน้อยเท่าใด
+a) 2-way
+b) 4-way
+c) 8-way
+d) 16-way
+=b
+16 KB / ways ≤ 4 KB
+%PART ค. ตอบสั้น
+%SA
+VA 32 bits, page 4 KB, physical memory 1 GB, PTE 4 bytes จงหาจำนวนบิตของ VPN, offset, PPN และขนาด page table
+=VPN 20, offset 12, PPN 18, page table 4 MB
+PA = 30 bits → PPN = 30 − 12 (ตรงกับตัวอย่างในสไลด์)
+%SA
+VA 32 bits, page 16 KB, PTE 4 bytes จงหาจำนวนบิตของ VPN และขนาด page table
+=VPN 18 bits, page table 1 MB
+offset 14 bits · page ใหญ่ขึ้น page table เล็กลง
+%SA
+(Exercise ในสไลด์) page 4 KB สถาปนิกควรออกแบบ cache 32 KB อย่างไรให้ทำ overlapped access ได้
+=8-way set associative (4 KB ต่อ way)
+index + offset ต้องอยู่ใน page offset 12 bits · ทางเลือกอื่นคือใช้ page ใหญ่ขึ้น หรือให้ OS รับประกันบิต VA = PA (page coloring)
+%SA
+(สไลด์) cache 8 KB direct-mapped กับ page 4 KB ทำ overlapped access ไม่ได้เพราะอะไร และมีทางแก้อะไรบ้าง
+=cache ใช้ 13 bits แต่ page offset มี 12 bits · แก้: page 8 KB, 2-way set associative, หรือ SW รับประกัน VA[12] = PA[12]
+บิตที่ 12 ของ VA ถูกเปลี่ยนตอนแปลงเป็น PA จึงใช้เป็น index ก่อนแปลไม่ได้
+%SA
+(Exercise ในสไลด์) เมื่อ OS ทำ process switch ต้องทำอะไรกับ TLB, page table และ cache
+=TLB: flush (หรือใช้ ASID) · page table: ไม่ลบ แค่เปลี่ยน page table register · cache: physical ไม่ต้อง flush ส่วน virtual ต้อง flush หรือใส่ PID
+mapping ใน TLB เป็นของ process เก่า

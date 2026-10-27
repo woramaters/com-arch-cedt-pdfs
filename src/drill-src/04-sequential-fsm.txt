@@ -1,0 +1,118 @@
+%TITLE DL4: Sequential Circuits และ FSM
+%CODE F
+%REVIEW
+- **Latch** level-sensitive · **Flip-flop** edge-triggered
+- **D:** Q⁺ = D · **JK:** Q⁺ = JQ' + K'Q (00 hold, 01 reset, 10 set, **11 toggle**) · **T:** Q⁺ = T ⊕ Q · **SR:** S = R = 1 ห้ามใช้
+
+| Q → Q⁺ | D | T | J K |
+|---|---|---|---|
+| 0 → 0 | 0 | 0 | 0 X |
+| 0 → 1 | 1 | 1 | 1 X |
+| 1 → 0 | 0 | 1 | X 1 |
+| 1 → 1 | 1 | 0 | X 0 |
+
+- **Setup** = ต้องนิ่งก่อนขอบ clock · **Hold** = ต้องนิ่งหลังขอบ · **T<sub>clk</sub> ≥ t<sub>clk-to-Q</sub> + t<sub>comb,max</sub> + t<sub>setup</sub>**
+- **Counter modulo-N** ใช้ FF ⌈log₂N⌉ ตัว
+- **FSM:** Moore output ขึ้นกับ state อย่างเดียว (เขียนในวงกลม) ส่วน Mealy ขึ้นกับ state + input (เขียนบนเส้น) และ Mealy มักใช้ state น้อยกว่า
+- **FF ขั้นต่ำ = ⌈log₂(#states)⌉** (binary) ส่วน one-hot ใช้เท่าจำนวน state
+- control unit ของ multi-cycle processor คือ FSM (Ch5)
+%ENDREVIEW
+%PART ก. Flip-flop
+%MC
+อุปกรณ์ใดเปลี่ยนค่าเฉพาะที่ขอบ (edge) ของ clock
+a) SR latch
+b) D latch
+c) D flip-flop
+d) Combinational circuit
+=c
+latch เป็น level-sensitive (โปร่งใสตลอดช่วงที่ enable)
+%MC
+Characteristic equation ของ D flip-flop คือ
+a) Q⁺ = D
+b) Q⁺ = D ⊕ Q
+c) Q⁺ = DQ'
+d) Q⁺ = D'
+=a
+D flip-flop เก็บค่า D ณ ขอบ clock จึงนำไปทำ register
+%MC
+JK flip-flop ที่มี J = 1 และ K = 1 จะเกิดอะไรขึ้นที่ขอบ clock
+a) Q = 0
+b) Q = 1
+c) Q คงเดิม
+d) Q กลับค่า (toggle)
+=d
+Q⁺ = JQ' + K'Q = Q' (สถานะต้องห้ามเป็นของ SR)
+%MC
+T flip-flop มี Q = 1 และ T = 1 หลังขอบ clock ค่า Q คือ
+a) 0
+b) 1
+c) คงเดิม
+d) ไม่แน่นอน
+=a
+Q⁺ = T ⊕ Q = 1 ⊕ 1 = 0
+%MC
+SR latch มีสถานะต้องห้ามเมื่อใด
+a) S = 0, R = 0
+b) S = 1, R = 0
+c) S = 0, R = 1
+d) S = 1, R = 1
+=d
+แบบ NOR ทำให้ Q และ Q' เป็น 0 พร้อมกัน แล้วค่าไม่แน่นอนเมื่อปล่อย
+%MC
+Setup time หมายถึงข้อใด
+a) เวลาที่ input ต้องนิ่งก่อนขอบ clock
+b) เวลาที่ input ต้องนิ่งหลังขอบ clock
+c) เวลาตั้งแต่ขอบ clock จนถึง output เปลี่ยน
+d) ความยาวของ clock cycle
+=a
+b คือ hold time และ c คือ clk-to-Q
+%PART ข. FSM
+%MC
+ข้อใดถูกต้องเกี่ยวกับ Moore machine
+a) output ขึ้นกับ state ปัจจุบันเท่านั้น
+b) output ขึ้นกับ input ปัจจุบันเท่านั้น
+c) ใช้ state น้อยกว่า Mealy เสมอ
+d) output เขียนไว้บนเส้น transition
+=a
+d เป็นลักษณะของ Mealy และ Moore มักใช้ state มากกว่า
+%MC
+Mealy machine ที่ตรวจจับลำดับ "101" แบบ overlapping ต้องใช้อย่างน้อยกี่ state
+a) 2
+b) 3
+c) 4
+d) 5
+=b
+S0, S1 ("1") และ S2 ("10") โดย output = 1 บนเส้น S2 →(1)→ S1
+%MC
+FSM ที่มี 10 states ถ้าใช้ binary encoding ต้องใช้ flip-flop อย่างน้อยกี่ตัว
+a) 3
+b) 4
+c) 5
+d) 10
+=b
+⌈log₂10⌉ = 4 (2³ = 8 ไม่พอ)
+%MC
+FSM ที่มี 12 states ถ้าใช้ one-hot encoding ต้องใช้ flip-flop กี่ตัว
+a) 4
+b) 6
+c) 12
+d) 24
+=c
+one-hot ใช้ 1 FF ต่อ 1 state (ตัวลวง a คือ binary encoding)
+%PART ค. ตอบสั้น
+%SA
+ต้องการให้ Q เปลี่ยนจาก 0 เป็น 1 ต้องป้อนอะไรให้ (ก) JK flip-flop (ข) T flip-flop
+=(ก) J = 1, K = X (ข) T = 1
+JK เปลี่ยน 0 → 1 ได้ทั้ง set (10) และ toggle (11) จึงไม่สน K
+%SA
+ออกแบบ Moore machine ตรวจจับ "101" แบบ overlapping ต้องใช้กี่ state และ flip-flop อย่างน้อยกี่ตัว
+=4 states, 2 flip-flops
+S0 → S1 ("1") → S2 ("10") → S3 ("101", output 1) จาก S3 ถ้าได้ 0 ไป S2 และถ้าได้ 1 ไป S1
+%SA
+วงจรมี t<sub>clk-to-Q</sub> = 2 ns, combinational delay สูงสุด 10 ns และ setup time 1 ns clock period ขั้นต่ำและความถี่สูงสุดคือเท่าใด
+=13 ns ≈ 76.9 MHz
+T ≥ 2 + 10 + 1 = 13 ns → f = 1/13 ns ≈ 76.9 MHz (เหตุผลเดียวกับที่ pipeline register มี overhead)
+%SA
+Counter แบบ modulo-12 ต้องใช้ flip-flop อย่างน้อยกี่ตัว
+=4 ตัว
+⌈log₂12⌉ = 4

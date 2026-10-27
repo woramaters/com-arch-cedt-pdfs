@@ -1,0 +1,226 @@
+%TITLE Ch2: Performance (Speedup, CPU Time, Amdahl)
+%CODE P
+%REVIEW
+::: formula
+Speedup ("X เร็วกว่า Y n เท่า") = T<sub>Y</sub> / T<sub>X</sub> = T<sub>old</sub> / T<sub>new</sub>
+
+CPU Time = IC × CPI × T<sub>c</sub> = IC × CPI / f
+
+CPI<sub>avg</sub> = Σ(CPI<sub>i</sub> × freq<sub>i</sub>) · MIPS = IC / (T × 10⁶) = f / (CPI × 10⁶)
+
+Amdahl: S = 1 / ((1 − P) + P/n) · S<sub>max</sub> = 1 / (1 − P) · P = สัดส่วนของ "เวลา"
+:::
+
+- **Response time** (latency, elapsed/wall-clock หรือ CPU time) กับ **throughput** (งานต่อเวลา) เป็นคนละเรื่องกัน และ `time` ให้ real = elapsed, user, sys
+- **Benchmark:** real · microbenchmark · kernel · **toy** (quicksort) · **synthetic** (Whetstone, Dhrystone) · SPEC
+- **Weighted AM** ใช้กับเวลาเมื่อรู้ workload · **Geometric mean** ใช้กับ ratio (consistent กับทุก baseline แต่ทำนายเวลาจริงไม่ได้)
+- **IC** ขึ้นกับ program/ISA/compiler · **CPI** ขึ้นกับ ISA/organization · **T<sub>c</sub>** ขึ้นกับ organization/VLSI technology
+- **MIPS ใช้เทียบข้าม ISA ไม่ได้** และ clock สูงกว่าไม่ได้แปลว่าเร็วกว่า
+%ENDREVIEW
+%PART ก. นิยามและการวัด
+%MC
+Computer A ใช้เวลา 15 s ส่วน Computer B ใช้ 24 s กับโปรแกรมเดียวกัน ข้อใดถูก
+a) A เร็วกว่า B 1.6 เท่า
+b) A เร็วกว่า B 0.625 เท่า
+c) B เร็วกว่า A 1.6 เท่า
+d) A เร็วกว่า B 9 เท่า
+=a
+24 / 15 = 1.6 (b กลับเศษส่วน และ d เป็นผลต่าง)
+%MC
+โปรแกรมเดิมใช้เวลา 10 s หลังปรับปรุงเหลือ 4 s ได้ speedup เท่าใด
+a) 0.4
+b) 1.5
+c) 2.5
+d) 6
+=c
+T<sub>old</sub> / T<sub>new</sub> = 10/4
+%MC
+X ใช้ 30 s และ Y ใช้ 20 s กับโปรแกรมเดียวกัน Y เร็วกว่า X กี่เท่า
+a) 0.67
+b) 1.5
+c) 10
+d) 50
+=b
+30/20 = 1.5
+%MC
+Computer X ทำ 4 งานพร้อมกันเสร็จใน 8 นาที ส่วน Y ทำทีละงาน งานละ 3 นาที ข้อใดถูก
+a) X มี throughput สูงกว่า และ Y มี response time ต่ำกว่า
+b) Y ดีกว่าทั้งสองด้าน
+c) X ดีกว่าทั้งสองด้าน
+d) throughput เท่ากัน
+=a
+X มี throughput 0.5 งาน/นาที ส่วน Y มี 0.33 งาน/นาที แต่ Y ใช้เวลา 3 นาทีต่องานเทียบกับ 8 นาทีของ X
+%MC
+ในผลลัพธ์ของคำสั่ง `time` ค่า real คือ
+a) CPU time ใน user mode
+b) CPU time ใน kernel
+c) Elapsed (wall-clock) time
+d) CPU time ของทุก process
+=c
+user และ sys เป็น CPU time
+%MC
+การใช้ quicksort สั้น ๆ เป็นตัววัด performance คือ benchmark ประเภทใด
+a) Real
+b) Kernel
+c) Synthetic
+d) Toy
+=d
+synthetic คือโปรแกรมที่เขียนขึ้นให้เลียนแบบโปรแกรมจริง เช่น Whetstone และ Dhrystone
+%MC
+Whetstone และ Dhrystone เป็น benchmark ประเภทใด
+a) Real
+b) Toy
+c) Synthetic
+d) Microbenchmark
+=c
+เขียนขึ้นเพื่อเลียนแบบพฤติกรรมของโปรแกรมจริง (scientific/integer)
+%PART ข. การรวมผล
+%MC
+ถ้ารู้สัดส่วนการใช้งานของแต่ละโปรแกรม และต้องการรวม "เวลา" เป็นค่าเดียว ควรใช้ค่าเฉลี่ยแบบใด
+a) Weighted arithmetic mean
+b) Geometric mean
+c) Harmonic mean
+d) Median
+=a
+เวลามีหน่วย ส่วน GM ใช้กับ ratio
+%MC
+เหตุผลที่ใช้ geometric mean กับผล benchmark ที่เป็น ratio คือ
+a) ได้ค่ามากที่สุด
+b) ให้ผลสอดคล้องกันไม่ว่าจะใช้เครื่องใดเป็น baseline
+c) ทำนายเวลาจริงได้แม่นยำ
+d) ไม่ต้องใช้ workload
+=b
+สไลด์ระบุชัดว่า GM ทำนาย performance จริงไม่ได้ (ตัวลวง c)
+%MC
+Speedup ของสองโปรแกรมคือ 2 และ 8 geometric mean คือ
+a) 4
+b) 5
+c) 16
+d) 3.2
+=a
+√(2 × 8) = 4 (b เป็น arithmetic mean และ d เป็น harmonic mean)
+%PART ค. CPU Time และ MIPS
+%MC
+โปรแกรมมี 4 × 10⁹ คำสั่ง CPI 1.5 บน CPU 3 GHz ใช้ CPU time เท่าใด
+a) 0.5 s
+b) 1.125 s
+c) 2 s
+d) 8 s
+=c
+4 × 10⁹ × 1.5 / 3 × 10⁹ = 2 s
+%MC
+CPU 500 MHz รัน 2 × 10⁸ คำสั่ง CPI 2.5 ใช้ CPU time เท่าใด
+a) 0.1 s
+b) 0.25 s
+c) 1 s
+d) 2.5 s
+=c
+5 × 10⁸ cycles / 5 × 10⁸ Hz = 1 s
+%MC
+เครื่องในข้อที่แล้วมีกี่ MIPS
+a) 80
+b) 200
+c) 500
+d) 1250
+=b
+500 / 2.5 = 200 (หรือ 2 × 10⁸ คำสั่ง / 1 s)
+%MC
+โปรแกรมใช้ 3 × 10⁹ cycles บน CPU 1.5 GHz ใช้เวลาเท่าใด
+a) 0.5 s
+b) 3 s
+c) 2 s
+d) 4.5 s
+=c
+cycles / f = 2 s
+%MC
+Instruction mix: 60% มี CPI 1, 30% มี CPI 2 และ 10% มี CPI 5 average CPI คือ
+a) 1.7
+b) 2.67
+c) 8
+d) 1.5
+=a
+0.6 + 0.6 + 0.5 (ตัวลวง b เฉลี่ยแบบไม่ถ่วงน้ำหนัก)
+%MC
+A มี 400 MIPS และรันโปรแกรมที่ compile ได้ 800 ล้านคำสั่ง ส่วน B (ISA ต่างกัน) มี 300 MIPS และโปรแกรมเดียวกัน compile ได้ 500 ล้านคำสั่ง ข้อใดถูก
+a) A เร็วกว่าเพราะ MIPS สูงกว่า
+b) B เร็วกว่าประมาณ 1.2 เท่า
+c) เร็วเท่ากัน
+d) สรุปไม่ได้เพราะไม่รู้ clock
+=b
+T<sub>A</sub> = 2 s และ T<sub>B</sub> = 1.67 s → MIPS ใช้เทียบข้าม ISA ไม่ได้
+%MC
+ตัวแปรใดใน CPU time ที่ขึ้นกับ VLSI technology โดยตรง
+a) IC
+b) CPI
+c) Clock cycle time
+d) จำนวนบรรทัดของโปรแกรม
+=c
+T<sub>c</sub> ขึ้นกับ organization และ VLSI ส่วน IC ขึ้นกับ program/ISA/compiler
+%PART ง. Amdahl's Law
+%MC
+ส่วนที่กินเวลา 60% ถูกทำให้เร็วขึ้น 3 เท่า overall speedup คือ
+a) 1.67
+b) 1.8
+c) 2.0
+d) 3.0
+=a
+1 / (0.4 + 0.2) = 1.67
+%MC
+ทำให้ส่วนที่กินเวลา 50% เร็วขึ้น 2 เท่า จะได้ overall speedup เท่าใด
+a) 1.33
+b) 1.5
+c) 2
+d) 1.25
+=a
+1 / (0.5 + 0.25)
+%MC
+โปรแกรมที่ทำ parallel ได้ 75% ของเวลา จะได้ speedup สูงสุดเท่าใด
+a) 1.33
+b) 3
+c) 4
+d) ไม่มีขีดจำกัด
+=c
+1 / 0.25 = 4 เพราะส่วน serial จำกัด speedup
+%PART จ. ตอบสั้น
+%SA
+โปรแกรม 2 × 10⁹ คำสั่ง บน CPU 2 GHz: ALU 40% (CPI 1), Load 30% (CPI 4), Store 10% (CPI 3), Branch 20% (CPI 2) จงหา average CPI และ CPU time
+=CPI = 2.3, CPU time = 2.3 s
+CPI = 0.4 + 1.2 + 0.3 + 0.4 = 2.3 และ T = 2 × 10⁹ × 2.3 / 2 × 10⁹ = 2.3 s (load มี 30% ของคำสั่งแต่กินเวลา 52%)
+%SA
+6 × 10⁹ คำสั่ง CPI 1.25 บน CPU 2.5 GHz จงหา CPU time และ MIPS
+=3 s, 2000 MIPS
+T = 7.5 × 10⁹ / 2.5 × 10⁹ = 3 s และ MIPS = 2500 / 1.25 = 2000
+%SA
+A และ B ใช้ ISA เดียวกัน โดย A: 2 GHz, CPI 2.0 และ B: 3 GHz, CPI 2.7 เครื่องใดเร็วกว่าและกี่เท่า
+=B เร็วกว่า 1.11 เท่า
+เวลาต่อคำสั่ง: A = 2.0/2 = 1.0 ns และ B = 2.7/3 = 0.9 ns → clock สูงขึ้น 1.5 เท่าแต่ได้แค่ 1.11 เท่า
+%SA
+(ตัวอย่างในสไลด์) CPU 1 GHz รัน 2000 ล้านคำสั่งใน 20 s ถ้าเพิ่ม clock เป็น 2 GHz แต่ CPI แย่ลง 1.2 เท่า จะใช้เวลาเท่าใด
+=12 s
+CPI<sub>เดิม</sub> = 20 × 10⁹ / 2 × 10⁹ = 10 → CPI<sub>ใหม่</sub> = 12 → T = 2 × 10⁹ × 12 / 2 × 10⁹ = 12 s
+%SA
+P1 ใช้ 70% และ P2 ใช้ 30% ของงาน เวลาที่วัดได้คือ A: P1 = 8 s, P2 = 20 s และ B: P1 = 12 s, P2 = 6 s จงหา weighted mean และบอกว่าควรเลือกเครื่องใด
+=A = 11.6 s, B = 10.2 s → เลือก B
+A = 5.6 + 6.0 และ B = 8.4 + 1.8 → "เร็วที่สุด" ขึ้นกับ workload
+%SA
+FP กินเวลา 40% ของโปรแกรม ทำให้ FP เร็วขึ้น 5 เท่า overall speedup เป็นเท่าใด
+=1.47
+1 / (0.6 + 0.08) = 1/0.68
+%SA
+ส่วนที่ปรับปรุงได้กินเวลา 90% ต้องเร่งส่วนนั้นกี่เท่าจึงจะได้ overall speedup = 5
+=9 เท่า
+1/(0.1 + 0.9/n) = 5 → 0.9/n = 0.1 → n = 9 (S<sub>max</sub> = 10)
+%SA
+(Exercise ในสไลด์) FP 25% ของคำสั่ง CPI 4.0 ส่วนคำสั่งอื่น CPI 1.33 ถ้าลด CPI ของ FP เหลือ 2.5 จะได้ speedup เท่าใด
+=≈ 1.23
+CPI<sub>เดิม</sub> = 1 + 0.9975 ≈ 2.0 และ CPI<sub>ใหม่</sub> = 0.625 + 0.9975 = 1.6225 → 2.0/1.6225 ≈ 1.23 (ถ้าใช้ Amdahl ต้องแทน P = เวลาของ FP = 1.0/2.0 = 50% ไม่ใช่ 25%)
+%SA
+10⁹ คำสั่ง บน 2.5 GHz: ALU 50% (CPI 1), Load 20% (CPI 5), Store 10% (CPI 4), Branch 20% (CPI 3) ถ้าลด CPI ของ Load เหลือ 3 จะได้ speedup เท่าใด และ P ใน Amdahl คือเท่าใด
+=speedup ≈ 1.19, P = 0.4
+CPI 2.5 → 2.1 ได้ 2.5/2.1 = 1.19 · load กินเวลา 1.0/2.5 = 40% → 1/(0.6 + 0.4 × 3/5) = 1/0.84 = 1.19
+%SA
+โปรแกรมทำ parallel ได้ 70% (ก) บน 8 cores ได้ speedup เท่าใด (ข) ระหว่างเพิ่มเป็น 64 cores กับทำส่วน serial ให้เร็วขึ้น 2 เท่า (8 cores เท่าเดิม) ทางไหนดีกว่า
+=(ก) 2.58 (ข) ทำ serial เร็วขึ้นดีกว่า (4.21 > 3.22)
+- 64 cores: 1/(0.3 + 0.7/64) = 3.22
+- serial เร็วขึ้น 2 เท่า: 1/(0.15 + 0.0875) = 4.21
+- → ส่วน serial เป็นตัวจำกัด (diminishing returns)

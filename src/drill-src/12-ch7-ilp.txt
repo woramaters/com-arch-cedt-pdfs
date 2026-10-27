@@ -1,0 +1,131 @@
+%TITLE Ch7: Instruction-Level Parallelism
+%CODE X
+%REVIEW
+- **Flynn:** SISD = uniprocessor · **SIMD** = vector/GPU (MMX, SSE, AVX, Altivec, CUDA) · **MISD** = fault-tolerant · **MIMD** = multicore/distributed
+- **ILP** = จำนวนคำสั่งที่ทำพร้อมกันได้ · เทคนิค: vectorization, speculative execution, pipelining, superscalar (OoO, register renaming), VLIW
+
+| แบบ | ILP | T(n) | ลดอะไร |
+|---|---|---|---|
+| Pipeline | k | (k + n − 1) T<sub>c</sub> | — |
+| **Superscalar** (x) | kx | (k + (n − x)/x) T<sub>c</sub> | **CPI** = 1/x (dynamic, HW) |
+| **Superpipeline** (m) | mk | (k + (n − 1)/m) T<sub>c</sub> | CPI = 1/m |
+| **VLIW** (x) | kx | (k + (n/x − x)) T<sub>c</sub> | **IC** = n/x (static, compiler) |
+
+- **SuperSymmetry:** degree เท่ากันได้ performance เท่ากัน
+- Superscalar อาจทำงาน **out-of-order** → เสี่ยง **WAR/WAW** → แก้ด้วย **register renaming** หรือ in-order completion
+- **VLIW:** static scheduling → binary ไม่ compatible ข้ามรุ่น (Itanium, EOL 2019)
+- **Dynamic vs Static:** dynamic ทำให้ legacy code เร็วขึ้นโดยไม่ต้อง recompile แต่ HW ซับซ้อนและใช้ power มาก ส่วน static ใช้ HW ง่ายแต่ compiler ทำยาก → **dynamic ชนะ**
+- **Loop unrolling:** basic block ใหญ่ขึ้น (8 → 3.5 cycles/iter, speedup 2.29) แลกกับ code ที่ใหญ่ขึ้นและถูกจำกัดด้วยจำนวน register · **software pipelining** unroll เท่าที่จำเป็น
+- **SMT** = ดึงคำสั่งจากหลาย thread · Intel เรียก **Hyper-Threading**
+%ENDREVIEW
+%PART ก. แนวคิด
+%MC
+ตาม Flynn's taxonomy ในสไลด์ MISD ใช้กับงานแบบใด
+a) Uniprocessor
+b) Vector processor
+c) Fault-tolerant computing
+d) Multicore
+=c
+SISD = uniprocessor, SIMD = vector, MIMD = multicore
+%MC
+ข้อใดเป็นตัวอย่างของ SIMD
+a) Intel AVX
+b) Server แบบ multicore
+c) Uniprocessor 8088
+d) ระบบที่ให้หลายเครื่องคำนวณแล้ว vote
+=a
+ทำ operation เดียวกับหลายข้อมูลในคำสั่งเดียว
+%MC
+VLIW เพิ่ม performance โดยลดตัวแปรใดเป็นหลัก
+a) IC
+b) CPI
+c) T<sub>c</sub>
+d) Miss rate
+=a
+รวม x operations ใน 1 คำสั่ง (superscalar ลด CPI)
+%MC
+ข้อใดถูกเกี่ยวกับ VLIW
+a) ใช้ dynamic scheduling ใน hardware
+b) ลด CPI แต่ไม่ลด IC
+c) ใช้ static scheduling ทำให้ binary ข้ามรุ่น (Itanium → Itanium II) ไม่ compatible
+d) Itanium ยังได้รับความนิยม
+=c
+Intel ประกาศ EOL ของ Itanium ในปี 2019
+%MC
+Superscalar ที่ทำงานแบบ out-of-order เสี่ยงต่อ hazard ชนิดใดเพิ่มขึ้น
+a) RAR
+b) WAR และ WAW
+c) Structural เท่านั้น
+d) ไม่มี hazard
+=b
+คนที่มาทีหลัง (สั่งบะหมี่) อาจเสร็จก่อน (สั่งข้าว)
+%MC
+เทคนิคใดกำจัด WAR และ WAW ได้
+a) Forwarding
+b) Branch prediction
+c) Register renaming
+d) Write buffer
+=c
+เป็น name dependence (forwarding แก้ RAW)
+%MC
+ข้อดีของ dynamic scheduling เทียบกับ static scheduling คือ
+a) hardware ง่ายกว่า
+b) compiler เห็น scope กว้างกว่า
+c) ใช้ power ต่ำกว่า
+d) software เดิมเร็วขึ้นบน hardware ใหม่โดยไม่ต้อง recompile
+=d
+a, b, c เป็นข้อดีของ static
+%MC
+ข้อใดไม่ใช่ข้อเสียหรือข้อจำกัดของ loop unrolling
+a) code size ใหญ่ขึ้น
+b) จำนวน register จำกัดจำนวนรอบที่ unroll ได้
+c) ทำให้ basic block เล็กลง
+d) ต้อง rename register
+=c
+loop unrolling ทำให้ basic block ใหญ่ขึ้น ซึ่งเป็นเป้าหมายของมัน
+%MC
+Simultaneous Multithreading (SMT) ของ Intel มีชื่อว่า
+a) Turbo Boost
+b) Hyper-Threading
+c) AVX
+d) Itanium
+=b
+ดึงคำสั่งจากหลาย thread เข้า pipeline เมื่อ thread เดียวเติม slot ไม่เต็ม
+%PART ข. คำนวณ
+%MC
+Superscalar degree 2, pipeline 5 stages รัน 1000 คำสั่ง (ideal) ใช้เวลากี่ T<sub>c</sub>
+a) 1004
+b) 504
+c) 502
+d) 1000
+=b
+5 + 998/2 = 504 (1004 คือ pipeline ธรรมดา)
+%MC
+Superscalar degree 4, pipeline 5 stages รัน 1000 คำสั่ง ใช้เวลากี่ T<sub>c</sub>
+a) 254
+b) 1004
+c) 250
+d) 259
+=a
+5 + 996/4 = 254 (250 ลืมเวลา fill)
+%MC
+Superpipeline m = 3, k = 5 รัน n = 301 คำสั่ง ใช้เวลากี่ T<sub>c</sub>
+a) 105
+b) 305
+c) 101
+d) 903
+=a
+5 + 300/3 = 105
+%PART ค. ตอบสั้น
+%SA
+(สไลด์) loop ปกติใช้ 8 cycles/iteration แต่หลัง unroll 4 รอบ + reschedule ใช้ 14 cycles ต่อ 4 iterations ได้ speedup เท่าใด และต้องทำอะไรเพิ่มเพื่อให้แต่ละ iteration อิสระกัน
+=3.5 cycles/iter → speedup ≈ 2.29 · ต้อง register renaming
+ถ้า unroll 5 รอบบน superscalar (Int + FP) จะได้ 12 cycles / 5 iter = 2.4 cycles/iter
+%SA
+(สไลด์) loop รวม 19 cycles โดยงาน integer ใช้ 7 cycles และ FP ใช้ 12 cycles ถ้ามี 2 pipelines (Int + FP) ทำงานพร้อมกัน speedup สูงสุดเท่าใด
+=19/12 ≈ 1.6
+CPU time = max(Int, FP) = 12 cycles
+%SA
+เติมตาราง: superscalar degree x ลด ……, superpipeline m ลด ……, VLIW x ลด …… และที่ degree เท่ากันทั้งสามได้ speedup ……
+=CPI (1/x), CPI (1/m), IC (n/x) · เท่ากัน (SuperSymmetry)
+superscalar ทำ dynamic scheduling ใน HW ส่วน VLIW ทำ static scheduling ด้วย compiler

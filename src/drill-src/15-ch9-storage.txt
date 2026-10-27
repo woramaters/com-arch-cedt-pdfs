@@ -1,0 +1,110 @@
+%TITLE Ch9: Storage (RAID, SAN, NAS)
+%CODE R
+%REVIEW
+- **RAID** = Redundant Array of Independent (เดิม Inexpensive) Disks (Patterson, Gibson, Katz, UC Berkeley, 1987) เป็น storage virtualization ที่ทำให้ดิสก์ราคาถูกได้ performance เทียบดิสก์แพง
+
+| Level | วิธี | Min | ทนเสีย | Capacity |
+|---|---|---|---|---|
+| 0 | Stripe | 2 | 0 | N |
+| 1 | Mirror | 2 | 1 | N/2 |
+| 2 | Bit-level + Hamming | — | 1 | (แทบไม่ใช้) |
+| 3 | Byte-level parity | 3 | 1 | N − 1 |
+| 4 | Block parity บนดิสก์เฉพาะ | 3 | 1 | N − 1 (write ช้า: parity disk เป็นคอขวด) |
+| **5** | Block parity **กระจายทุกดิสก์** | **3** | 1 | **N − 1** |
+| **6** | 2 parities | **4** | **2** | **N − 2** |
+
+- **Nested:** RAID 01, 10, 50 · **JBOD/span:** รวมดิสก์ต่างขนาดได้แต่ไม่มี redundancy · **RAID ไม่ใช่ backup**
+- **SAN** = **block** storage (iSCSI, Fibre Channel) client จัดการ file system มักไม่ share · **NAS** = **file** storage (NFS, CIFS/SMB) server จัดการ file system share ง่าย
+- **Cloud:** EBS = block · S3 = object · Google Drive/Dropbox = file · Protocol/interface (SATA, SAS, PCIe) ≠ storage technology (SSD, HDD)
+%ENDREVIEW
+%PART ก. RAID
+%MC
+RAID 0 มีลักษณะอย่างไร
+a) Mirror ทนเสียได้ 1 ลูก
+b) Stripe เร็วที่สุดแต่ไม่มี redundancy
+c) Parity กระจายทุกดิสก์
+d) Parity สองชุด
+=b
+เสียลูกเดียวข้อมูลหายหมด
+%MC
+ทำไม RAID 4 จึงเขียนช้า
+a) ไม่มี parity
+b) parity อยู่บนดิสก์เฉพาะลูกเดียว ทุกการเขียนต้องใช้ดิสก์นั้นจึงเป็นคอขวด
+c) ใช้ bit-level parity
+d) ต้องใช้ดิสก์ 2 ลูก
+=b
+RAID 5 แก้ด้วยการกระจาย parity ไปทุกดิสก์
+%MC
+RAID 5 ที่ใช้ดิสก์ 2 TB จำนวน 4 ลูก มีพื้นที่ใช้งานจริงเท่าใด
+a) 2 TB
+b) 4 TB
+c) 6 TB
+d) 8 TB
+=c
+(4 − 1) × 2 (8 TB = RAID 0 และ 4 TB = RAID 1/10)
+%MC
+RAID 6 ที่ใช้ดิสก์ 4 TB จำนวน 6 ลูก มีพื้นที่ใช้งานจริงเท่าใด
+a) 24 TB
+b) 20 TB
+c) 16 TB
+d) 12 TB
+=c
+(6 − 2) × 4 และทนดิสก์เสียได้ 2 ลูก
+%MC
+ข้อใดถูกเกี่ยวกับ JBOD
+a) ทนดิสก์เสียได้ 1 ลูก
+b) รวมดิสก์ต่างขนาดเป็นก้อนเดียวได้ แต่ไม่มี redundancy
+c) เป็น RAID level 7
+d) ใช้ parity สองชุด
+=b
+JBOD = Just a Bunch Of Disks (span)
+%PART ข. SAN, NAS และ Cloud
+%MC
+NAS ใช้ protocol ใดในการแชร์ไฟล์
+a) iSCSI
+b) Fibre Channel
+c) NFS
+d) SATA
+=c
+iSCSI เป็นของ SAN
+%MC
+ใน SAN ใครเป็นผู้จัดการ file system
+a) Server ของ storage
+b) Client (OS ของเครื่องที่ใช้ เห็นเป็น block)
+c) Switch ของเครือข่าย
+d) ไม่มี file system
+=b
+NAS เป็นแบบตรงข้าม คือ server จัดการ file system และ permission
+%MC
+Amazon EBS และ NAS ที่ใช้ NFS ให้บริการ storage ระดับใดตามลำดับ
+a) Block, File
+b) File, Block
+c) Object, File
+d) Block, Object
+=a
+EBS เหมือนดิสก์เปล่าที่ต่อกับ VM
+%MC
+Amazon S3 เป็น storage ประเภทใด
+a) Block
+b) File
+c) Object
+d) RAID
+=c
+เข้าถึงผ่าน API เป็น object (ข้อมูล + metadata + ID)
+%PART ค. ตอบสั้น
+%SA
+ทำไม RAID 5 จึงเขียนได้เร็วกว่า RAID 4 และ RAID 5 ต้องใช้ดิสก์อย่างน้อยกี่ลูก
+=parity กระจายทุกดิสก์จึงเขียนหลาย stripe ขนานกันได้ (RAID 4 มี parity disk เป็นคอขวด) · อย่างน้อย 3 ลูก
+ทั้งคู่ทนดิสก์เสียได้ 1 ลูก
+%SA
+ดิสก์ 3 TB จำนวน 5 ลูก จงหาพื้นที่ใช้งานและจำนวนดิสก์ที่เสียได้ สำหรับ RAID 0, 5 และ 6
+=RAID 0: 15 TB เสียได้ 0 · RAID 5: 12 TB เสียได้ 1 · RAID 6: 9 TB เสียได้ 2
+N, N − 1 และ N − 2 ลูก
+%SA
+(Exercise ในสไลด์) RAID 0, 1 และ 5 ต้องใช้ดิสก์อย่างน้อยกี่ลูก
+=2, 2, 3
+RAID 6 ต้องใช้อย่างน้อย 4
+%SA
+เปรียบเทียบ SAN กับ NAS ใน 3 ประเด็น: ระดับของ storage, ใครจัดการ file system, การ share
+=SAN: block, client จัดการ FS, ไม่นิยม share · NAS: file, server จัดการ FS, share ง่าย
+SAN ใช้ iSCSI/Fibre Channel ส่วน NAS ใช้ NFS/SMB

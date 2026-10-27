@@ -1,0 +1,126 @@
+%TITLE Ch5: Multiple Cycle Processor
+%CODE M
+%REVIEW
+- **ปัญหาของ single cycle:** cycle ยาว ทุกคำสั่งต้องรอเท่าคำสั่งที่ช้าที่สุด
+- **วิธีแก้:** แบ่ง datapath แล้วใส่ intermediate registers (IR, REG_A, REG_B, REG_S, REG_M, REG_WR) ให้แต่ละส่วน**ใช้เวลาเท่า ๆ กัน** และคำสั่งง่ายข้ามขั้นที่ไม่ใช้ได้ ใช้ hardware ร่วมกันได้ (ALU คำนวณ PC + 4, รวม memory)
+- **5 ขั้น:** Fetch (IR ← MEM[PC]; PC ← PC + 4) → Decode → Execute → Memory → Write back
+- **จำนวน cycle: LW 5 · ORI/ORUI/ADD/SW 4 · BEQ/JMP 3** (BEQ บวกแค่ imm × 4 เพราะ PC + 4 ไปแล้วตอน fetch)
+- **SW:** 1 Fetch · 2 A ← R[rs], B ← sign_ext, **M ← R[rt]** · 3 S ← A + B · 4 **MEM[S] ← M**
+- **Control = FSM** (Fetch → Decode → ALU_Exec/ADD_Calc/BEQ/JMP → ...) implement ด้วย sequential circuit หรือ **microprogram** (เปลี่ยน Map ROM แล้วทำ ISA อื่นได้)
+- **Multi-cycle ไม่ได้เร็วกว่าเสมอ:** เทียบ CPI<sub>avg</sub> × T<sub>c,multi</sub> กับ T<sub>c,single</sub>
+%ENDREVIEW
+%PART ก. แนวคิด
+%MC
+ปัญหาหลักของ single-cycle processor คือ
+a) CPI สูง
+b) ทุกคำสั่งต้องใช้เวลาเท่าคำสั่งที่ช้าที่สุด (cycle ยาว)
+c) มี hazard
+d) ใช้ register มากเกินไป
+=b
+CPI = 1 อยู่แล้ว แต่ cycle time ยาวเพราะ critical path
+%MC
+วิธีลด cycle time ของ multi-cycle ตามสไลด์คือ
+a) เพิ่ม clock โดยไม่แก้ datapath
+b) แบ่ง datapath แล้วใส่ intermediate register ให้แต่ละส่วนใช้เวลาใกล้เคียงกัน
+c) ลดจำนวนคำสั่ง
+d) ใช้ cache ใหญ่ขึ้น
+=b
+cycle time = เวลาของส่วนที่ยาวที่สุด จึงต้อง balance
+%MC
+ใน multi-cycle nanoLADA คำสั่ง LW, SW และ JMP ใช้กี่ cycle ตามลำดับ
+a) 5, 5, 3
+b) 5, 4, 3
+c) 4, 4, 3
+d) 5, 4, 2
+=b
+SW ไม่มี write back และ JMP ใช้ fetch + decode + เปลี่ยน PC
+%MC
+cycle ที่ 4 ของคำสั่ง SW ทำอะไร
+a) IR ← MEM[PC]
+b) REG_S ← REG_A + REG_B
+c) MEM[REG_S] ← REG_M
+d) R[rt] ← REG_WR
+=c
+d คือ write back ซึ่ง SW ไม่มี
+%MC
+ทำไม cycle ที่ 3 ของ BEQ ใน multi-cycle บวก PC ด้วย imm × 4 อย่างเดียว ไม่บวก 4 เพิ่ม
+a) เพราะ BEQ ไม่ใช้ PC
+b) เพราะ PC ถูกบวก 4 ไปแล้วใน cycle Fetch
+c) เพราะ imm รวม 4 ไว้แล้ว
+d) เพราะ ALU บวกไม่ได้
+=b
+Fetch ทำ PC ← PC + 4 ทุกคำสั่ง
+%MC
+Control unit ของ multi-cycle processor มีลักษณะแบบใด
+a) Combinational logic ล้วน
+b) Finite state machine
+c) ROM ที่ไม่มี state
+d) Pipeline
+=b
+แต่ละ state = 1 cycle และกำหนด control signals ของ cycle นั้น
+%MC
+ข้อดีสำคัญของการ implement control ด้วย microprogram คือ
+a) เร็วกว่า hardwired เสมอ
+b) เปลี่ยน microprogram (Map ROM) แล้วทำ ISA อื่นบน hardware เดิมได้
+c) ไม่ต้องมี state
+d) ลด IC
+=b
+และทำ control ของ CISC ที่ซับซ้อนได้ง่าย
+%MC
+ทำไมไม่ให้ programmer เขียนโปรแกรมด้วย microinstruction โดยตรง
+a) microinstruction ช้ากว่า
+b) ไม่ Turing complete
+c) ต้องใช้ OS พิเศษ
+d) microinstruction ผูกกับ organization จึงไม่ compatible ข้ามรุ่น
+=d
+ISA เป็น abstraction ที่ทำให้ software portable
+%PART ข. คำนวณ
+%MC
+Single cycle มี cycle time 240 ns ส่วน multi-cycle 60 ns ถ้าต้องการให้ multi-cycle เร็วอย่างน้อยเท่ากัน CPI ต้องเป็นเท่าใด
+a) ≥ 4
+b) ≤ 4
+c) ≤ 5
+d) = 1
+=b
+CPI × 60 ≤ 240
+%MC
+multi-cycle (20 ns) รัน LW 3, ADD 2, BEQ 1 คำสั่ง ใช้เวลาเท่าใด
+a) 120 ns
+b) 480 ns
+c) 520 ns
+d) 600 ns
+=c
+15 + 8 + 3 = 26 cycles × 20 ns
+%MC
+multi-cycle (25 ns) รัน ADD 4, SW 2, BEQ 2, JMP 1 คำสั่ง ใช้เวลาเท่าใด
+a) 225 ns
+b) 825 ns
+c) 900 ns
+d) 1125 ns
+=b
+16 + 8 + 6 + 3 = 33 cycles × 25 ns
+%PART ค. ตอบสั้น
+%SA
+(Exercise ในสไลด์) single cycle 210 ns และ multi-cycle 45 ns CPI เฉลี่ยต้องไม่เกินเท่าใดจึงจะได้ performance อย่างน้อยเท่าเดิม
+=CPI ≤ 4.67
+210 / 45 = 4.67
+%SA
+(Exercise ในสไลด์) cycle time 40 ns โค้ด: `LW; LW; BEQ (not taken); ADD; SW` ใช้เวลาเท่าใด
+=21 cycles = 840 ns
+5 + 5 + 3 + 4 + 4 = 21
+%SA
+Single 200 ns, multi 50 ns และ mix: LW 20%, SW 10%, R-type/ORI 50%, BEQ 20% จงหา CPI และบอกว่าเครื่องใดเร็วกว่า
+=CPI = 4.0, เร็วเท่ากัน (200 ns ต่อคำสั่ง)
+0.2(5) + 0.1(4) + 0.5(4) + 0.2(3) = 4.0 → 4.0 × 50 = 200 ns
+%SA
+Single 250 ns, multi 60 ns และ mix: LW 25%, SW 10%, R/ORI 45%, BEQ 15%, JMP 5% จงหา CPI และบอกว่าเครื่องใดเร็วกว่า
+=CPI = 4.05, multi เร็วกว่าเล็กน้อย (243 vs 250 ns)
+1.25 + 0.40 + 1.80 + 0.45 + 0.15 = 4.05 → 4.05 × 60 = 243 ns · speedup ≈ 1.03
+%SA
+(ตัวอย่างในสไลด์) 100 คำสั่ง: single cycle 45 ns/cycle และ multi-cycle 10 ns/cycle CPI 4.6 แบบใดเร็วกว่า
+=single 4500 ns, multi 4600 ns → single เร็วกว่า
+แสดงว่า multi-cycle ไม่ได้เร็วกว่าเสมอ (pipeline ในตัวอย่างเดียวกันใช้ 1030 ns)
+%SA
+จะดัดแปลง datapath ให้ ALU ใช้คำนวณ PC + 4 แทน adder แยกได้อย่างไร
+=ใส่ MUX ที่ input A (เลือก PC หรือ REG_A) และ input B (เลือก 4, REG_B หรือ imm × 4) แล้วใช้ ALU ใน cycle Fetch
+ทำได้เพราะ Fetch ไม่ได้ใช้ ALU ทำอย่างอื่น

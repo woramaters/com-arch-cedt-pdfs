@@ -1,0 +1,168 @@
+%TITLE Ch3 (2): Endian, Alignment, Addressing, Control Flow, Exceptions
+%CODE D
+%REVIEW
+- **Little endian:** LSB อยู่ address ต่ำ (Intel) · **Big endian:** MSB อยู่ address ต่ำ (PowerPC, Sun, Photoshop) · ARM เลือกได้
+- **Endian performance:** บวกเลข → little ดีกว่า (ได้ byte ต่ำก่อน) · เปรียบเทียบ → big ดีกว่า (ได้ sign bit ก่อน)
+- **Restricted alignment:** address mod size = 0 ภาระอยู่ที่ compiler (padding) HW trap และไม่เสียเวลา → ชนะ · **Unrestricted:** HW ต้องแก้เอง อาจต้องเข้าถึง 2 ครั้ง
+
+| Mode | ตัวอย่าง | C |
+|---|---|---|
+| Immediate | `LDI r1, #4` | A = 4 |
+| Register | `ADD r1,r2,r3` | A = B + C |
+| **Displacement** | `LD r1, 100(r2)` | A = G.age / local var |
+| Register indirect | `LD r1, (r2)` | A = `*p` |
+| Index | `LD r1, (r2+r3)` | A = D[i] |
+| Direct | `LD r1, 1000` | global |
+| Memory indirect | `LD r1, @(r2)` | A = `**p` |
+| Auto-inc/dec | `LD r1, (r2)+` | D[i++] / D[i−−] |
+| Scale | `LD r1, (r2)[r3*4]` | E[i] |
+
+- **PC-relative** → relocatable · shared library ใช้ register (`CALL $r14`)
+- **Caller-save** (ผู้เรียก save) vs **callee-save** (subroutine save เฉพาะที่ใช้ → คุ้มกว่า) · x86 PUSHA/POPA
+- **Exception** = unprogrammed control flow: **interrupt** (HW ภายนอก) / **trap** (software) → save status + PC → handler → restore
+- **Vector table:** mem[Base + n × address size] · **Handler table:** Base + n × handler size · **Fixed entry:** กระโดดไป 0x1000 แล้ว software ดู source register
+%ENDREVIEW
+%PART ก. Endian และ Alignment
+%MC
+เก็บ 0x11223344 แบบ big endian ที่ 0x1000 ไบต์ที่ 0x1003 คือ
+a) 0x11
+b) 0x22
+c) 0x33
+d) 0x44
+=d
+MSB อยู่ address ต่ำ: 11, 22, 33, 44 (ตัวลวง a เป็นคำตอบแบบ little endian)
+%MC
+เก็บ 0xDEADBEEF แบบ little endian ที่ 0x40 ไบต์ที่ 0x40 คือ
+a) 0xDE
+b) 0xAD
+c) 0xBE
+d) 0xEF
+=d
+LSB อยู่ address ต่ำ
+%MC
+สำหรับการเปรียบเทียบเลข 32 บิตบน bus 8 บิต endian แบบใดเร็วกว่า
+a) Little: ได้ byte ต่ำก่อน
+b) Big: ได้ byte ที่มี sign bit ก่อน
+c) Little: carry ถูกต้อง
+d) เท่ากัน
+=b
+little endian เหมาะกับการบวก
+%MC
+ภายใต้ restricted alignment address ใดเก็บ int (4 bytes) ได้
+a) 0x1002
+b) 0x1006
+c) 0x100C
+d) 0x1011
+=c
+0x100C mod 4 = 0
+%MC
+ภายใต้ restricted alignment `char a; double b;` เริ่มที่ 0 ตัวแปร b อยู่ที่ address ใด
+a) 1
+b) 2
+c) 4
+d) 8
+=d
+double ต้องหาร 8 ลงตัว (padding 1–7)
+%MC
+ข้อใดถูกเกี่ยวกับ unrestricted alignment
+a) compiler ต้องใส่ padding
+b) hardware trap ทุกครั้งที่ไม่ aligned
+c) hardware ต้องตรวจและแก้เอง ซึ่งอาจต้องเข้าถึง memory 2 ครั้งขึ้นไป
+d) เร็วกว่า restricted เสมอ
+=c
+a และ b เป็นลักษณะของ restricted alignment
+%PART ข. Addressing Modes และ Control Flow
+%MC
+`LD r1, 100(r2)` ที่ใช้อ่าน field ของ struct (`A = G.age`) คือ addressing mode ใด
+a) Register indirect
+b) Displacement
+c) Memory indirect
+d) Scale
+=b
+M[R + ค่าคงที่]
+%MC
+โค้ด C `A = **p;` ตรงกับ addressing mode ใด
+a) Register indirect
+b) Memory indirect
+c) Displacement
+d) Auto-increment
+=b
+M[M[R2]] (register indirect คือ `*p`)
+%MC
+`LD r1, (r2)+` ตรงกับโค้ด C แบบใด
+a) A = `*p`
+b) A = D[i++]
+c) A = `**p`
+d) A = D[i−−]
+=b
+auto-increment: อ่าน M[R2] แล้วเพิ่ม R2
+%MC
+ข้อดีหลักของ branch แบบ PC-relative คือ
+a) กระโดดไปทุก address ได้
+b) ไม่ต้องใช้ adder
+c) โปรแกรม relocatable
+d) memory เร็วขึ้น
+=c
+ปลายทางไม่ผูกกับ address จริง และ branch ส่วนใหญ่กระโดดใกล้ ๆ
+%MC
+Callee-save หมายถึงข้อใด
+a) ผู้เรียก PUSH ทุก register ก่อน CALL
+b) ไม่มีใคร save
+c) OS เป็นผู้ save
+d) subroutine save เฉพาะ register ที่ตัวเองจะแก้ แล้ว restore ก่อน RET
+=d
+caller ไม่รู้ว่า callee ใช้ register ไหน จึงอาจ save เกินจำเป็น
+%PART ค. Exceptions
+%MC
+Exception ที่เกิดจาก software เช่น system call หรือหารด้วยศูนย์ เรียกว่า
+a) Interrupt
+b) Trap
+c) Vector
+d) Bubble
+=b
+interrupt มาจาก hardware ภายนอก
+%MC
+การหา handler แบบ Fixed Entry ทำงานอย่างไร
+a) อ่าน address จากตารางตามหมายเลข
+b) กระโดดไปที่ Base + n × handler size
+c) กระโดดไป address คงที่ แล้ว software อ่าน interrupt-source register เพื่อตัดสินใจ
+d) hardware เลือกตาม priority
+=c
+a = vector table และ b = handler table
+%MC
+Vector table ที่ base 0x8000 และ address 4 bytes เมื่อเกิด interrupt หมายเลข 5 CPU อ่าน address ของ handler จาก
+a) 0x8005
+b) 0x8014
+c) 0x8050
+d) 0x8020
+=b
+0x8000 + 5 × 4 = 0x8000 + 0x14 (0x8050 เป็นคำตอบของ handler table ขนาด 16 B)
+%MC
+Handler table ที่ base 0x4000 และ handler ขนาด 32 bytes เมื่อเกิด interrupt หมายเลข 3 CPU กระโดดไปที่
+a) 0x400C
+b) 0x4003
+c) 0x4060
+d) 0x4096
+=c
+3 × 32 = 96 = 0x60 (ตัวลวง d ใช้ 96 เป็น hex)
+%PART ง. ตอบสั้น
+%SA
+เก็บ 0x0A0B0C0D ที่ 0x100 แบบ little endian จงเขียน byte ที่ 0x100–0x103 และบอกว่าถ้าเป็น big endian byte ที่ 0x102 คืออะไร
+=little: 0D 0C 0B 0A · big ที่ 0x102 = 0x0C
+big endian: 0A 0B 0C 0D
+%SA
+Restricted alignment: `char a; int b; short c; double d; char e;` เริ่มที่ 0 ตัวแปร d เริ่มที่ address ใด และไบต์สุดท้ายที่ใช้คือ address ใด
+=d เริ่มที่ 16, ไบต์สุดท้ายคือ 24
+a @0, b @4–7, c @8–9, d @16–23 (pad 10–15), e @24 → ใช้ 25 bytes
+%SA
+(Exercise ในสไลด์) วาง `char a; short b; int c; char d; long e; double f;` แบบ restricted alignment รวมใช้กี่ bytes และถ้าเรียงใหม่จะเหลือเท่าใด
+=32 bytes · เรียงจากใหญ่ไปเล็กเหลือ 24 bytes
+a @0, b @2–3, c @4–7, d @8, pad 9–15, e @16–23, f @24–31 · เรียงใหม่ได้ 8 + 8 + 4 + 2 + 1 + 1 = 24
+%SA
+Interrupt หมายเลข 6 (ก) vector table base 0x2000 address 32 bits อ่านจาก address ใด (ข) handler table base 0x2000 handler 64 bytes กระโดดไปที่ใด
+=(ก) 0x2018 (ข) 0x2180
+6 × 4 = 24 = 0x18 และ 6 × 64 = 384 = 0x180
+%SA
+เมื่อเกิด exception CPU ต้องทำอะไรตามลำดับ (ตอบเป็นขั้นตอน)
+=save status → save PC → เรียก handler → ทำงาน → restore status → restore PC (เช่น IRET)
+กลไกคล้าย subroutine call แต่เกิดโดยที่โปรแกรมไม่ได้สั่ง

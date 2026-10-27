@@ -16,16 +16,19 @@ const docs = [
   { dir: 'notes', out: 'Exam-Notes.pdf', title: 'Computer Architecture + Digital Logic: Exam Notes', toc: true, cover: 'cover-notes.html' },
   { dir: 'exam', out: 'Mock-Exam.pdf', title: 'Mock Exam + Solutions', toc: false, cover: 'cover-exam.html' },
   { dir: 'exam2', out: 'Mock-Exam-2.pdf', title: 'Mock Exam 2 (Sets 3-4) + Solutions', toc: false, cover: 'cover-exam2.html' },
+  { dir: 'drill', out: 'Topic-Drill.pdf', title: 'Topic Drill: review + questions + answers by topic', toc: true, cover: 'cover-drill.html', tocDepth: 1,
+    pre: ['python3', join(SRC, 'make_drill.py')] },
 ];
 
 const browser = await chromium.launch();
 for (const doc of docs) {
+  if (doc.pre) execFileSync(doc.pre[0], doc.pre.slice(1), { stdio: 'inherit' });
   const dir = join(SRC, doc.dir);
   const parts = readdirSync(dir).filter((f) => f.endsWith('.md')).sort().map((f) => join(dir, f));
   const html = join(SRC, `${doc.dir}.html`);
   const args = ['-f', PANDOC_FROM, '-t', 'html5', '-s', '--template', join(SRC, 'template.html'),
     '--metadata', `title=${doc.title}`, '-o', html];
-  if (doc.toc) args.push('--toc', '--toc-depth=2');
+  if (doc.toc) args.push('--toc', `--toc-depth=${doc.tocDepth ?? 2}`);
   if (doc.cover) args.push('--include-before-body', join(SRC, doc.cover));
   execFileSync('pandoc', [...args, ...parts], { stdio: 'inherit' });
 
