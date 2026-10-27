@@ -15,6 +15,7 @@ const PANDOC_FROM =
 const docs = [
   { dir: 'notes', out: 'Exam-Notes.pdf', title: 'Computer Architecture + Digital Logic: Exam Notes', toc: true, cover: 'cover-notes.html' },
   { dir: 'exam', out: 'Mock-Exam.pdf', title: 'Mock Exam + Solutions', toc: false, cover: 'cover-exam.html' },
+  { dir: 'exam2', out: 'Mock-Exam-2.pdf', title: 'Mock Exam 2 (Sets 3-4) + Solutions', toc: false, cover: 'cover-exam2.html' },
 ];
 
 const browser = await chromium.launch();

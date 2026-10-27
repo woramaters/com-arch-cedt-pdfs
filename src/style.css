@@ -150,7 +150,7 @@ blockquote p { margin: .25em 0; }
 .toc li { margin: .05em 0; }
 
 /* ---------- exam ---------- */
-.q { margin: .55em 0 .7em; break-inside: avoid; }
+.q { margin: .55em 0 .7em; padding-top: .25em; break-inside: avoid; }
 .q > p:first-child { margin-bottom: .2em; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: .1em 1.4em; margin: .15em 0 0 1.2em; }
 .choices p { margin: 0; }
