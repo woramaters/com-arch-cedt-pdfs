@@ -1,190 +1,180 @@
-# Mock Exam: Computer Architecture (Design and Analysis)
+# Mock Exam (ตามเกณฑ์จริง): Digital Logic + Computer Architecture
 
-**เวลา 90 นาที · คะแนนเต็ม 100**
-**ขอบเขต:** Chapter 1–9 (Introduction → Storage) ตามสไลด์ของ Krerk Piromsopa
+**เวลา 90 นาที · คะแนนเต็ม 60 (คิดเป็นคะแนนเก็บ 20)**
 
-| ส่วน | รูปแบบ | คะแนน | เวลาที่แนะนำ |
-|---|---|---|---|
-| A | เติมคำ (Fill in the blank) 20 ข้อ | 20 | 15 นาที |
-| B | ปรนัย (Multiple choice) 20 ข้อ | 20 | 20 นาที |
-| C | คำนวณและอธิบาย 8 ข้อ | 60 | 55 นาที |
+| ส่วน | จำนวน | คะแนน | Digital Logic | Computer Architecture |
+|---|---|---|---|---|
+| Part 1: Choice | 40 ข้อ × 1 | 40 | ข้อ 1–11 (11 คะแนน) | ข้อ 12–40 (29 คะแนน) |
+| Part 2: ตอบสั้น | 10 ข้อ × 2 | 20 | ข้อ S1–S2 (4 คะแนน) | ข้อ S3–S10 (16 คะแนน) |
+| **รวม** | | **60** | **15** | **45** |
 
-> **กติกา:** ใช้เครื่องคิดเลขได้ ห้ามดูโน้ต และจับเวลาจริง เมื่อทำเสร็จค่อยตรวจกับ `03-mock-exam-answers.md`
-> ข้อตกลงที่ใช้ทั้งฉบับ: 1 KB = 2¹⁰ bytes, address เป็น byte address และ 1 word = 4 bytes
-
----
-
-## Part A: เติมคำ (ข้อละ 1 คะแนน, 20 คะแนน)
-
-1. ISA เป็น abstraction/interface ระหว่าง ____________ กับ ____________
-2. ในปี 1964 IBM ออกสถาปัตยกรรม ____________ ซึ่งรวม instruction set ที่ไม่เข้ากันได้ 7 แบบเข้าด้วยกัน
-3. Core i3, i5 และ i7 ใช้ ISA เดียวกัน ความแตกต่างของมันจึงอยู่ที่ระดับ ____________
-4. Benchmark ที่พยายามเลียนแบบพฤติกรรมของโปรแกรมจริง เช่น Whetstone และ Dhrystone เรียกว่า ____________ benchmark
-5. เมื่อต้องสรุปผล benchmark ที่เป็น **ratio** (normalized speedup) ควรใช้ค่าเฉลี่ยแบบ ____________ mean
-6. เก็บค่า `0xCAFE1234` แบบ **little endian** ที่ address 0x200 ไบต์ที่ address **0x201** คือ `0x____`
-7. ภายใต้ restricted alignment ข้อมูลขนาด s ไบต์ต้องมี base address A ที่ทำให้ ____________ = 0
-8. Addressing mode ของ `LD $r1, ($r2)+` ชื่อ ____________ ซึ่งตรงกับ C ว่า `A = D[____]`
-9. ใน nanoLADA คำสั่ง I-type มี immediate ____ bits และ J-type มี address field ____ bits
-10. คำสั่ง `ORUI` ใช้ extender แบบ ____________ ส่วน `LW`/`SW`/`BEQ` ใช้แบบ ____________
-11. ใน single-cycle nanoLADA คำสั่งที่กำหนด critical path คือ ____________
-12. ใน multi-cycle nanoLADA คำสั่ง LW, SW และ JMP ใช้ ____, ____ และ ____ cycles ตามลำดับ
-13. Control unit ของ multi-cycle processor เป็น ____________ ซึ่งสร้างได้ด้วย sequential circuit หรือ ____________
-14. ถ้า Wregs(i) ∩ Rregs(j) ≠ ∅ โดย j มาก่อน i จะเกิด data hazard ชนิด ____________
-15. ตามหลัก Flynn's taxonomy, vector processor/GPU คือ ____________ และ multicore คือ ____________
-16. Simultaneous Multithreading (SMT) ของ Intel มีชื่อทางการค้าว่า ____________
-17. ____________ ใช้ capacitor ต้อง refresh และเหมาะเป็น main memory ส่วน ____________ ใช้ transistor และเหมาะเป็น cache
-18. Miss ที่เกิดขึ้นทั้งที่ cache ยังมีที่ว่าง แต่ mapping บังคับให้ชนกัน เรียกว่า ____________ miss
-19. Miss ใน virtual memory เรียกว่า ____________ และใช้นโยบายการเขียนแบบ write-____________ เท่านั้น
-20. RAID ____ ใช้ parity สองชุดและทนดิสก์เสียได้ 2 ลูก ส่วน RAID 5 ต้องใช้ดิสก์อย่างน้อย ____ ลูก
+> **กติกา:** จับเวลา 90 นาที ใช้เครื่องคิดเลขได้ ห้ามดูโน้ต **ผิดไม่ติดลบ ให้ตอบทุกข้อ**
+> ตอบสั้นให้ตอบเป็นตัวเลขพร้อมหน่วยหรือวลีสั้น ๆ (เหมือนพิมพ์ลงช่องใน MyCourseVille)
+> ข้อตกลง: byte addressing, 1 word = 4 bytes, 1 KB = 2¹⁰ B
+> เสร็จแล้วตรวจกับ `03-mock-exam-answers.md`
 
 ---
 
-## Part B: ปรนัย (ข้อละ 1 คะแนน, 20 คะแนน) เลือกคำตอบที่ถูกที่สุด
+## Part 1: Choice (40 ข้อ, ข้อละ 1 คะแนน)
 
-**B1.** ข้อใด**ไม่ใช่**สิ่งที่ ISA กำหนด
-a) รูปแบบ (format) ของคำสั่ง  b) addressing modes  c) จำนวน cache level ใน CPU  d) วิธีจัดการ interrupt/exception
+### Digital Logic (ข้อ 1–11)
 
-**B2.** Computer A มี 400 MIPS และรันโปรแกรมที่ compile ได้ 800 ล้านคำสั่ง ส่วน Computer B (ISA ต่างกัน) มี 300 MIPS และรันโปรแกรมเดียวกันที่ compile ได้ 500 ล้านคำสั่ง ข้อใดถูก
-a) A เร็วกว่าเพราะ MIPS สูงกว่า  b) B เร็วกว่าประมาณ 1.2 เท่า  c) เร็วเท่ากัน  d) สรุปไม่ได้เพราะไม่รู้ clock rate
+**1.** (1011.01)₂ มีค่าเท่าใดในฐานสิบ
+a) 11.01  b) 11.25  c) 11.5  d) 13.25
 
-**B3.** สถาปัตยกรรมใดเหมาะกับ pipelining ที่สุด
-a) Accumulator  b) Stack  c) Memory-Memory  d) Register-Register (Load-Store)
+**2.** 0x3F7 มีค่าเท่าใดในฐานแปด
+a) 1767₈  b) 3767₈  c) 1773₈  d) 7731₈
 
-**B4.** ข้อใดเป็นข้อเสียของ Stack architecture ตามสไลด์
-a) code density แย่  b) ข้อมูลที่ต้องการไม่ได้อยู่ top of stack เสมอ  c) ต้องใช้ hardware มาก  d) compiler เขียนยาก
+**3.** −100 ในระบบ 8-bit two's complement คือ
+a) 0x64  b) 0xE4  c) 0x9B  d) 0x9C
 
-**B5.** สำหรับการ**เปรียบเทียบ (มากกว่า/น้อยกว่า)** เลข 32 บิตบน bus 8 บิต endian แบบใดเร็วกว่า และเพราะอะไร
-a) Little: ได้ byte ต่ำก่อน  b) Big: ได้ byte ที่มี sign bit ก่อน  c) Little: carry ถูกต้อง  d) เท่ากัน
+**4.** ช่วงค่าของเลข 6-bit two's complement คือ
+a) −31 ถึง 31  b) −32 ถึง 31  c) −31 ถึง 32  d) 0 ถึง 63
 
-**B6.** ระบบใช้ **Vector Table** ที่ base 0x8000 และ address ขนาด 4 bytes เมื่อเกิด interrupt หมายเลข 5 CPU จะอ่าน**ที่อยู่ของ handler** จาก address ใด
-a) 0x8005  b) 0x8014  c) 0x8050  d) 0x8020
+**5.** บวกเลข 8-bit two's complement 0x70 + 0x50 ข้อใดถูก
+a) carry out = 1, overflow = 1  b) carry out = 0, overflow = 0  c) carry out = 0, overflow = 1  d) carry out = 1, overflow = 0
 
-**B7.** วิธี clear register ที่สไลด์แนะนำสำหรับ architecture ส่วนใหญ่คือ
-a) `CLR R1`  b) `MOV R1, 0`  c) `SUB R1,R1,R1`  d) `XOR R1,R1,R1`
+**6.** ข้อใดถูกต้องตามกฎ DeMorgan
+a) (AB)' = A'B'  b) (A + B)' = A' + B'  c) (AB)' = A' + B'  d) (A + B)' = AB
 
-**B8.** การย้าย `hs = 3600;` ที่เป็นค่าคงที่ออกไปไว้นอก loop เป็น optimization ประเภทใด
-a) Strength reduction  b) Code motion  c) Procedure inlining  d) Pipeline scheduling
+**7.** F(A,B,C) = A'B'C' + A'B'C + AB'C' + AB'C ลดรูปได้เป็น
+a) A'  b) B'  c) B'C'  d) A + B'
 
-**B9.** ใน nanoLADA single-cycle คำสั่งใดมี `reg_wr = 0` และ `mem_wr = 1`
-a) LW  b) SW  c) BEQ  d) ORI
+**8.** F(A,B,C,D) = Σm(0, 2, 8, 10) + d(1, 3, 9, 11) รูปที่ลดได้น้อยที่สุดคือ
+a) B'D'  b) A'B'  c) B'  d) B' + D'
 
-**B10.** หลังรัน `ORUI $r1, $r0, #0xBEEF` ค่าของ $r1 คือ
-a) 0x0000BEEF  b) 0xFFFFBEEF  c) 0xBEEF0000  d) 0xBEEFBEEF
+**9.** Multiplexer แบบ 32-to-1 ต้องมี select lines กี่เส้น
+a) 4  b) 5  c) 16  d) 32
 
-**B11.** คำสั่ง `BEQ $r1, $r2, imm` อยู่ที่ PC = 0x0040 โดย imm = −3 และ R[r1] == R[r2] ค่า PC ถัดไปคือ
-a) 0x0034  b) 0x0038  c) 0x003D  d) 0x0044
+**10.** JK flip-flop ที่มี J = 1 และ K = 1 จะเกิดอะไรขึ้นที่ขอบ clock
+a) Q = 0  b) Q = 1  c) Q คงเดิม  d) Q กลับค่า (toggle)
 
-**B12.** Single-cycle มี cycle time 240 ns ส่วน multi-cycle มี cycle time 60 ns ถ้าต้องการให้ multi-cycle เร็ว**อย่างน้อยเท่ากับ** single-cycle ค่า average CPI ต้องเป็นเท่าไร
-a) ≥ 4  b) ≤ 4  c) ≤ 5  d) = 1
+**11.** ข้อใดถูกต้องเกี่ยวกับ Moore machine
+a) output ขึ้นกับ state ปัจจุบันเท่านั้น  b) output ขึ้นกับ input ปัจจุบันเท่านั้น  c) ใช้ state น้อยกว่า Mealy เสมอ  d) output อยู่บนเส้น transition
 
-**B13.** ข้อใด**ถูก**เกี่ยวกับ pipelining
-a) ลด latency ของแต่ละคำสั่ง  b) เพิ่ม throughput โดย clock ถูกจำกัดด้วย stage ที่ช้าที่สุด  c) speedup เท่ากับจำนวน stage พอดีเสมอ  d) stage ไม่สมดุลไม่มีผล
+### Computer Architecture (ข้อ 12–40)
 
-**B14.** การแยก instruction cache กับ data cache ช่วยแก้ hazard ชนิดใด
-a) Structural  b) Data (RAW)  c) Control  d) WAW
+**12.** Intel เพิ่ม L3 cache และ Hyper-Threading ใน CPU รุ่นใหม่ โดยโปรแกรมเดิมรันได้ทันทีไม่ต้อง compile ใหม่ นี่คือการเปลี่ยนแปลงในระดับใด
+a) ISA  b) ABI  c) Computer Organization  d) Compiler
 
-**B15.** ใน 5-stage pipeline ที่มี forwarding ครบ ลำดับคำสั่งใดที่**ยังต้อง stall**
-a) `ADD r1,..` ตามด้วย `SUB ..,r1,..`  b) `LW r1,0(r2)` ตามด้วย `ADD r3,r1,r4`  c) `SW r1,0(r2)` ตามด้วย `ADD r3,r4,r5`  d) `ADD r1,..` ตามด้วย `SW r1,0(r2)`
+**13.** Moore's Law กล่าวว่า
+a) clock rate เพิ่มเป็นสองเท่าทุก 2 ปี  b) จำนวน transistor บน IC เพิ่มเป็นสองเท่าประมาณทุก 2 ปี (18 เดือน)  c) ราคา DRAM ลดลง 40% ต่อปี  d) performance เพิ่มขึ้นตามจำนวน core
 
-**B16.** ข้อใดอธิบาย **branch delay slot** ได้ถูกต้อง
-a) hardware ยกเลิกคำสั่งหลัง branch ทุกครั้ง  b) คำสั่งที่อยู่ถัดจาก branch จะถูก execute เสมอ ไม่ว่า branch จะ taken หรือไม่  c) เป็นวิธีทาย branch ด้วย history  d) ไม่ต้องอาศัย compiler
+**14.** Computer A รันโปรแกรมใช้เวลา 15 s ส่วน Computer B ใช้ 24 s ข้อใดถูก
+a) A เร็วกว่า B 1.6 เท่า  b) A เร็วกว่า B 0.625 เท่า  c) B เร็วกว่า A 1.6 เท่า  d) A เร็วกว่า B 9 เท่า
 
-**B17.** Superscalar degree 2 กับ pipeline 5 stage รัน 1000 คำสั่ง (ideal) ใช้เวลาประมาณกี่ T_c
-a) 1004  b) 504  c) 502  d) 1000
+**15.** Computer X ทำ 4 งานพร้อมกันเสร็จทั้งหมดใน 8 นาที ส่วน Computer Y ทำทีละงาน งานละ 3 นาที ข้อใดถูก
+a) X มี throughput สูงกว่า และ Y มี response time ต่ำกว่า  b) Y ดีกว่าทั้งสองด้าน  c) X ดีกว่าทั้งสองด้าน  d) throughput เท่ากัน
 
-**B18.** ข้อใด**ถูก**เกี่ยวกับ VLIW
-a) ใช้ dynamic scheduling ใน hardware  b) ลด CPI แต่ไม่ลด IC  c) ใช้ static scheduling ทำให้ binary ข้ามรุ่น (เช่น Itanium → Itanium II) ไม่ compatible  d) Intel Itanium ยังผลิตอยู่และได้รับความนิยม
+**16.** โปรแกรมมี 4 × 10⁹ คำสั่ง รันด้วย average CPI = 1.5 บน CPU 3 GHz จะใช้ CPU time เท่าไร
+a) 0.5 s  b) 1.125 s  c) 2 s  d) 8 s
 
-**B19.** การเพิ่ม associativity จาก direct-mapped เป็น 4-way (cache size เท่าเดิม) มีผลข้อใดมากที่สุด
-a) ลด compulsory miss  b) ลด conflict miss แต่ hit time อาจเพิ่มขึ้น  c) ลด capacity miss เป็นศูนย์  d) ทำให้ไม่ต้องมี tag
+**17.** ส่วนของโปรแกรมที่กินเวลา 60% ถูกทำให้เร็วขึ้น 3 เท่า overall speedup คือ
+a) 1.67  b) 1.8  c) 2.0  d) 3.0
 
-**B20.** Amazon EBS และ NAS ที่ใช้ NFS ให้บริการ storage ระดับใดตามลำดับ
-a) Block, File  b) File, Block  c) Object, File  d) Block, Object
+**18.** เหตุผลที่ควรใช้ geometric mean กับผล benchmark ที่เป็น ratio คือ
+a) ได้ค่าเฉลี่ยมากที่สุด  b) ให้ผลสอดคล้องกันไม่ว่าจะใช้เครื่องใดเป็น baseline  c) ทำนายเวลาจริงได้แม่นยำ  d) ไม่ต้องใช้ workload
 
----
+**19.** สถาปัตยกรรมแบบใดเป็น "0-address" (operand อยู่ที่ top of stack โดยปริยาย)
+a) Accumulator  b) Stack  c) Register-Memory  d) Load-Store
 
-## Part C: คำนวณและอธิบาย (60 คะแนน) แสดงวิธีทำ
+**20.** เก็บค่า 0x11223344 แบบ **big endian** ที่ address 0x1000 ไบต์ที่ address **0x1003** คือ
+a) 0x11  b) 0x22  c) 0x33  d) 0x44
 
-### C1. CPU Performance (8 คะแนน)
-โปรแกรมหนึ่งมี 10⁹ คำสั่ง รันบน CPU 2.5 GHz โดยมี instruction mix ดังนี้
+**21.** คำสั่ง `LD $r1, 100($r2)` ที่ใช้อ่าน field ของ struct (เช่น `A = G.age`) ใช้ addressing mode ใด
+a) Register indirect  b) Displacement  c) Memory indirect  d) Scale
 
-| Class | สัดส่วน | CPI |
-|---|---|---|
-| ALU | 50% | 1 |
-| Load | 20% | 5 |
-| Store | 10% | 4 |
-| Branch | 20% | 3 |
+**22.** ภายใต้ restricted alignment address ใดเก็บ `int` (4 bytes) ได้ถูกต้อง
+a) 0x1002  b) 0x1006  c) 0x100C  d) 0x1011
 
-(a) หา average CPI และ CPU time (3 คะแนน)
-(b) ถ้าปรับปรุง memory จน CPI ของ Load ลดเหลือ 3 จะได้ speedup เท่าไร (2 คะแนน)
-(c) แสดงว่าคำตอบข้อ (b) ได้ค่าเท่ากันเมื่อใช้ **Amdahl's Law** และอธิบายว่า P ที่ต้องใช้คืออะไร ทำไม**ไม่ใช่** 20% (3 คะแนน)
+**23.** ระบบใช้ **Handler Table** ที่ base 0x4000 โดย handler แต่ละตัวมีขนาด 32 bytes เมื่อเกิด interrupt หมายเลข 3 CPU จะกระโดดไปที่
+a) 0x400C  b) 0x4003  c) 0x4060  d) 0x4096
 
-### C2. Amdahl's Law (5 คะแนน)
-โปรแกรมหนึ่งใช้เวลา 70% กับส่วนที่ทำ parallel ได้
-(a) ถ้ารันบน 8 cores จะได้ overall speedup เท่าไร (2 คะแนน)
-(b) speedup สูงสุดที่เป็นไปได้ (cores → ∞) คือเท่าไร (1 คะแนน)
-(c) ทีมงานมีสองทางเลือก คือ (i) เพิ่ม cores จาก 8 เป็น 64 หรือ (ii) ทำให้ส่วน serial เร็วขึ้น 2 เท่า (ยังคง 8 cores) ทางไหนดีกว่า แสดงตัวเลข (2 คะแนน)
+**24.** ใน nanoLADA single-cycle ค่า control ของคำสั่ง `ADD rd, rs, rt` ข้อใดถูก
+a) sel_wr = 1 (rt), sel_b = 1 (imm)  b) sel_wr = 0 (rd), sel_b = 0 (R[rt])  c) sel_data = 1 (memory)  d) mem_wr = 1
 
-### C3. Single-cycle vs Multi-cycle vs Pipeline: nanoLADA (9 คะแนน)
-พิจารณาโปรแกรมต่อไปนี้ (BEQ **not taken**)
-```
-LW   $r1, 0($r10)
-LW   $r2, 4($r10)
-ADD  $r3, $r1, $r2
-ORI  $r4, $r3, #1
-SW   $r4, 8($r10)
-BEQ  $r1, $r2, SKIP
-JMP  END
-```
-กำหนดให้ single-cycle มี cycle time = 230 ns, multi-cycle มี cycle time = 50 ns และ pipeline 5 stage มี cycle time = 50 ns (ideal ไม่มี stall)
-(a) หาเวลาที่ใช้บน single-cycle (2 คะแนน)
-(b) หาจำนวน cycle และเวลาที่ใช้บน multi-cycle (3 คะแนน)
-(c) หาเวลาที่ใช้บน ideal pipeline และ speedup เทียบกับ single-cycle (2 คะแนน)
-(d) ในความเป็นจริง pipeline นี้จะเจอ hazard อย่างน้อย 2 จุด ให้ระบุว่าอยู่ระหว่างคำสั่งใดและเป็นชนิดใด (2 คะแนน)
+**25.** ขั้นตอนแรกของการออกแบบ processor ตามสไลด์คือ
+a) ประกอบ control logic  b) เลือก components ของ datapath  c) วิเคราะห์ ISA โดยเขียนแต่ละคำสั่งเป็น RTL  d) หา critical path
 
-### C4. Cache Address Mapping (10 คะแนน)
-ระบบมี address 32 bit และ **direct-mapped cache ขนาด 16 KB** โดย **block size 32 bytes**
-(a) หาจำนวนบิตของ tag, index และ offset (3 คะแนน)
-(b) หา tag, index และ offset (เลขฐานสิบ) ของ address `0x00012345` (3 คะแนน)
-(c) address `0x00016345` จะ hit หรือ conflict กับ `0x00012345` หรือไม่ อธิบาย (2 คะแนน)
-(d) ถ้าเปลี่ยนเป็น **2-way set associative** ขนาดเท่าเดิม จำนวนบิตของ tag/index/offset จะเป็นเท่าไร และต้องใช้ comparator กี่ตัว (2 คะแนน)
+**26.** single-cycle nanoLADA มี critical path 230 ns clock rate สูงสุดประมาณเท่าไร
+a) 230 MHz  b) 43.5 MHz  c) 4.35 MHz  d) 2.3 GHz
 
-### C5. Cache Performance (6 คะแนน)
-(a) CPU มี CPI_ideal = 1 และ 30% ของคำสั่งเป็น load/store โดย instruction-cache miss rate = 2%, data-cache miss rate = 5% และ miss penalty = 100 cycles จงหา CPI จริง และบอกว่าช้ากว่า CPU ที่มี cache สมบูรณ์แบบกี่เท่า (3 คะแนน)
-(b) ระบบ 2-level มี L1 hit time 1 cycle, L1 miss rate 5%, L2 hit time 10 cycles, L2 (local) miss rate 20% และ memory 100 cycles จงหา AMAT (3 คะแนน)
+**27.** multi-cycle nanoLADA (cycle time 20 ns) รันโปรแกรมที่มี LW 3 คำสั่ง, ADD 2 คำสั่ง และ BEQ 1 คำสั่ง จะใช้เวลาเท่าไร
+a) 120 ns  b) 480 ns  c) 520 ns  d) 600 ns
 
-### C6. Pipeline Hazards & Scheduling (10 คะแนน)
-พิจารณา 5-stage pipeline (IF, ID, EX, MEM, WB) ที่มี **full forwarding** โดย register file เขียนครึ่งแรกของ cycle และอ่านครึ่งหลัง
-```
-1: LW   $r1, 0($r2)
-2: ADD  $r3, $r1, $r4
-3: LW   $r6, 4($r2)
-4: SUB  $r7, $r6, $r3
-5: ORI  $r8, $r9, #5
-```
-(a) ระบุ data dependency ทั้งหมด (คู่คำสั่ง, register และชนิด RAW/WAR/WAW) (3 คะแนน)
-(b) dependency ใดบ้างที่ forwarding แก้ได้โดยไม่ต้อง stall และจุดใดที่ยังต้อง stall รวมแล้วโปรแกรมนี้ใช้กี่ cycle (3 คะแนน)
-(c) **Reschedule** โปรแกรมให้ไม่มี stall เลย (ผลลัพธ์ต้องถูกต้องเหมือนเดิม) และบอกจำนวน cycle ใหม่ (3 คะแนน)
-(d) ถ้าโปรแกรมนี้รันบน machine ที่**ไม่มี forwarding เลย** (ต้องรอ WB) วิธีที่ software ใช้แก้ hazard ที่เหลือโดยไม่ต้องให้ hardware detect คืออะไร (1 คะแนน)
+**28.** ข้อดีสำคัญของการ implement control ด้วย microprogram คือ
+a) เร็วกว่า hardwired เสมอ  b) เปลี่ยน microprogram (map ROM) แล้วทำ ISA อื่นบน hardware เดิมได้  c) ไม่ต้องมี state  d) ลด IC ของโปรแกรม
 
-### C7. Virtual Memory & TLB (6 คะแนน)
-ระบบมี virtual address 32 bit, page size 4 KB, physical memory 1 GB และ page table entry ขนาด 4 bytes
-(a) หาจำนวนบิตของ VPN, page offset และ PPN (2 คะแนน)
-(b) page table ของแต่ละ process มีขนาดเท่าไร (1 คะแนน)
-(c) สถาปนิกต้องการ **L1 cache ขนาด 32 KB** ที่ทำ **overlapped cache & TLB access** ได้ cache ต้องมี associativity อย่างน้อยเท่าไร อธิบาย (2 คะแนน)
-(d) เมื่อ OS ทำ process switch ต้องทำอะไรกับ TLB และ page table (1 คะแนน)
+**29.** ตัวอย่าง laundry: มี 4 ขั้นตอน ขั้นละ 30 นาที ถ้าทำแบบ pipeline จำนวน **6 loads** จะใช้เวลาเท่าไร
+a) 3 ชั่วโมง  b) 4.5 ชั่วโมง  c) 6 ชั่วโมง  d) 12 ชั่วโมง
 
-### C8. อธิบายสั้น ๆ (6 คะแนน) **เลือกตอบ 2 ข้อจาก 4 ข้อ** (ข้อละ 3 คะแนน)
-(a) ทำไม **RAID 5** จึงเขียนได้เร็วกว่า **RAID 4** และ RAID 0 เหมาะกับงานแบบใด
-(b) เปรียบเทียบ **write-back** กับ **write-through** ในแง่ความเร็วและการใช้งานกับ multiprocessor และอธิบายว่า write buffer มีไว้ทำอะไร และเมื่อไรที่มันจะ saturate
-(c) โค้ดสองแบบนี้ให้ผลลัพธ์เหมือนกัน แบบไหนเร็วกว่าเพราะอะไร
-```c
-int data[1000][1000];
-// แบบ X                                   // แบบ Y
-for (r=0;r<1000;r++)                      for (c=0;c<1000;c++)
-  for (c=0;c<1000;c++) sum+=data[r][c];     for (r=0;r<1000;r++) sum+=data[r][c];
-```
-(d) เปรียบเทียบ **dynamic scheduling** (superscalar out-of-order) กับ **static scheduling** (VLIW) ในแง่ hardware, compatibility และ performance ของ legacy software แล้วบอกว่าในทางปฏิบัติฝั่งไหน "ชนะ" เพราะอะไร
+**30.** ใน pipeline ที่ LW ใช้ 5 stages และ R-type ใช้ 4 stages (ไม่มี MEM) ถ้า LW ตามด้วย ADD ทั้งสองคำสั่งจะเขียน register file ใน cycle เดียวกัน นี่คือ hazard ชนิดใด
+a) Structural  b) Data (RAW)  c) Control  d) WAR
+
+**31.** โค้ด `a = sin(x); x = 10;` (โดยที่ sin ต้องเตรียมนาน) อาจเกิด hazard ชนิดใด
+a) RAW  b) WAW  c) WAR  d) RAR
+
+**32.** ตาม Flynn's taxonomy ในสไลด์ MISD ใช้กับงานแบบใด
+a) Uniprocessor  b) Vector processor  c) Fault-tolerant computing  d) Multicore
+
+**33.** Superpipeline ที่มี m = 3 minor cycles, k = 5 stages รัน n = 301 คำสั่ง (ideal) ใช้เวลาเท่าไร
+a) 105 T_c  b) 305 T_c  c) 101 T_c  d) 903 T_c
+
+**34.** ข้อใด**ไม่ใช่**ข้อจำกัดหรือข้อเสียของ loop unrolling
+a) code size ใหญ่ขึ้น  b) จำนวน register จำกัดจำนวนรอบที่ unroll ได้  c) ทำให้ basic block เล็กลง  d) ต้อง rename register เพื่อให้แต่ละ iteration อิสระกัน
+
+**35.** Fully associative cache ยังคงมี miss ชนิดใดบ้าง
+a) Conflict อย่างเดียว  b) Compulsory และ Capacity  c) Compulsory, Capacity และ Conflict  d) ไม่มี miss เลย
+
+**36.** Direct-mapped cache มีขนาด 64 bytes และ block size 8 bytes address 300 (ฐานสิบ) จะอยู่ที่ index ใด
+a) 4  b) 5  c) 37  d) 44
+
+**37.** Write-through cache ที่ write buffer เต็มบ่อย (saturate) เพราะ memory ช้ามาก วิธีแก้ที่สไลด์เสนอคือ
+a) เพิ่มขนาด write buffer ไปเรื่อย ๆ  b) เพิ่ม L2 cache  c) ปิด cache  d) ใช้ direct-mapped
+
+**38.** TLB มักจัดเป็น fully associative เพราะ
+a) ขนาดใหญ่มาก  b) มีขนาดเล็ก (ประมาณ 128–256 entries) จึงเทียบทุก entry ได้  c) ไม่มี tag  d) OS จัดการทั้งหมด
+
+**39.** Virtual address 32 bits, page size 8 KB และ page table entry 4 bytes ขนาด page table ต่อ process คือ
+a) 1 MB  b) 2 MB  c) 4 MB  d) 8 MB
+
+**40.** RAID 5 ประกอบด้วยดิสก์ 2 TB จำนวน 4 ลูก จะมีพื้นที่ใช้งานจริงเท่าไร
+a) 2 TB  b) 4 TB  c) 6 TB  d) 8 TB
 
 ---
-*จบข้อสอบ ตรวจคำตอบกับ `03-mock-exam-answers.md`*
+
+## Part 2: ตอบสั้น (10 ข้อ, ข้อละ 2 คะแนน)
+
+### Digital Logic
+
+**S1.** เขียนสมการ Boolean ของ **Sum** และ **Carry-out** ของ full adder (อินพุต A, B, Cin)
+
+**S2.** ออกแบบ **Moore machine** ตรวจจับลำดับ "101" แบบ overlapping จะต้องใช้กี่ state และต้องใช้ flip-flop **อย่างน้อย**กี่ตัว (binary encoding)
+
+### Computer Architecture
+
+**S3.** โปรแกรมมี 2 × 10⁹ คำสั่ง รันบน CPU 2 GHz ด้วย instruction mix ต่อไปนี้: ALU 40% (CPI 1), Load 30% (CPI 4), Store 10% (CPI 3), Branch 20% (CPI 2) จงหา **average CPI** และ **CPU time**
+
+**S4.** ส่วนที่ปรับปรุงได้กินเวลา 90% ของโปรแกรม ต้องทำให้ส่วนนั้นเร็วขึ้นกี่เท่า จึงจะได้ overall speedup = 5
+
+**S5.** ภายใต้ restricted alignment ตัวแปรถูกวางตามลำดับนี้โดยเริ่มที่ address 0: `char a; int b; short c; double d; char e;` ตัวแปร **d** เริ่มที่ address ใด และ**ไบต์สุดท้ายที่ใช้**คือ address ใด
+
+**S6.** Single-cycle processor มี cycle time 200 ns ส่วน multi-cycle (nanoLADA: LW 5, SW 4, R-type/ORI 4, BEQ 3 cycles) มี cycle time 50 ns ถ้า instruction mix คือ LW 20%, SW 10%, R-type/ORI 50% และ BEQ 20% จงหา **average CPI ของ multi-cycle** และบอกว่าเครื่องไหนเร็วกว่า
+
+**S7.** พิจารณา 5-stage pipeline ที่มี full forwarding:
+```
+1: LW  $r1, 0($r2)
+2: ADD $r3, $r1, $r1
+3: SW  $r3, 4($r2)
+4: ADD $r1, $r4, $r5
+```
+ระบุ data dependency ทั้งหมด (ชนิดและ register) และบอกว่าต้อง stall กี่ cycle
+
+**S8.** ทำไม RAID 5 จึง**เขียน**ได้เร็วกว่า RAID 4 (ตอบ 1–2 ประโยค) และ RAID 5 ต้องใช้ดิสก์อย่างน้อยกี่ลูก
+
+**S9.** ระบบมี address 32 bits ใช้ **4-way set associative cache ขนาด 64 KB** โดย **block size 64 bytes** จงหาจำนวนบิตของ **tag, index และ offset**
+
+**S10.** ระบบ cache 2 ระดับ: L1 hit time 1 cycle, L1 miss rate 4%, L2 hit time 12 cycles, L2 local miss rate 25% และ memory access 200 cycles จงหา **AMAT**
+
+---
+*จบข้อสอบ ตรวจกับ `03-mock-exam-answers.md`*
