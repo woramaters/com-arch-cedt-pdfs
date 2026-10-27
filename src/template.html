@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>$title$</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+$for(include-before)$
+$include-before$
+$endfor$
+$if(toc)$
+<nav id="TOC" class="toc">
+<h1 class="toc-title">สารบัญ</h1>
+$table-of-contents$
+</nav>
+$endif$
+$body$
+</body>
+</html>
